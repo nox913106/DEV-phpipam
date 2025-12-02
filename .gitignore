@@ -1,0 +1,23 @@
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup files
+*.bak
+backup_*
+
+# Configuration (contains sensitive info)
+config/health_check_config.php
+
+# Test output
+test_output/
