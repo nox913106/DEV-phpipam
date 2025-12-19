@@ -24,6 +24,36 @@ class SystemInfo {
     }
     
     /**
+     * 取得完整的系統資訊 (含 24 小時歷史統計)
+     * 
+     * @param PDO $db 資料庫連線 (可選)
+     * @return array 系統資訊陣列 (含歷史統計)
+     */
+    public static function getAllWithHistory($db = null) {
+        $current = self::getAll();
+        
+        // 如果沒有資料庫連線，直接返回即時結果
+        if ($db === null) {
+            return $current;
+        }
+        
+        // 載入統計計算器
+        require_once(__DIR__ . '/StatsCalculator.php');
+        
+        // 取得 24 小時統計
+        $stats24h = StatsCalculator::getSystemStats24h($db);
+        
+        // 整合統計到各資源
+        $current['system_resources']['cpu']['stats_24h'] = $stats24h['cpu'];
+        $current['system_resources']['memory']['stats_24h'] = $stats24h['memory'];
+        $current['system_resources']['disk']['stats_24h'] = $stats24h['disk'];
+        $current['system_resources']['stats_period_hours'] = $stats24h['period_hours'] ?? 24;
+        $current['system_resources']['has_historical_data'] = $stats24h['has_data'] ?? false;
+        
+        return $current;
+    }
+    
+    /**
      * 取得主機基本資訊
      * 
      * @return array 主機資訊

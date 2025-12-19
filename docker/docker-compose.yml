@@ -1,0 +1,79 @@
+version: '3'
+
+services:
+  # phpIPAM Web 服務
+  phpipam-web:
+    image: phpipam/phpipam-www:v1.7.4
+    container_name: phpipam-web
+    environment:
+      - TZ=${TZ:-Asia/Taipei}
+      - IPAM_DATABASE_HOST=phpipam-mariadb
+      - IPAM_DATABASE_PASS=${MYSQL_PASSWORD}
+      - IPAM_DATABASE_WEBHOST=%
+      - PROXY_ENABLED=false
+      - IPAM_TRUST_X_FORWARDED=true
+      - IPAM_DISABLE_INSTALLER=false
+    restart: unless-stopped
+    volumes:
+      - phpipam-logo:/phpipam/css/images/logo
+      - phpipam-ca:/usr/local/share/ca-certificates:ro
+      - ./health_dashboard:/phpipam/health_dashboard:rw
+    ports:
+      - "${WEB_PORT:-80}:80"
+    depends_on:
+      - phpipam-mariadb
+    networks:
+      phpipam-network:
+
+        # phpIPAM Cron 服務 (含健康檢查資料收集)
+  phpipam-cron:
+    image: phpipam/phpipam-cron:v1.7.4
+    container_name: phpipam-cron
+    environment:
+      - TZ=${TZ:-Asia/Taipei}
+      - IPAM_DATABASE_HOST=phpipam-mariadb
+      - IPAM_DATABASE_PASS=${MYSQL_PASSWORD}
+      - SCAN_INTERVAL=${SCAN_INTERVAL:-1h}
+    restart: unless-stopped
+    volumes:
+      - phpipam-ca:/usr/local/share/ca-certificates:ro
+      - ./health_dashboard/includes:/health_check/includes:ro
+      - ./health_dashboard/scripts:/health_check/scripts:ro
+      - ./health_dashboard/config:/health_check/config:rw
+    depends_on:
+      - phpipam-mariadb
+    networks:
+      phpipam-network:
+
+        # MariaDB 資料庫
+  phpipam-mariadb:
+    image: mariadb:10.11
+    container_name: phpipam-mariadb
+    environment:
+      - TZ=${TZ:-Asia/Taipei}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-phpipam}
+      - MYSQL_USER=${MYSQL_USER:-phpipam}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - phpipam-db-data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d:ro
+    networks:
+      phpipam-network:
+
+
+volumes:
+  phpipam-db-data:
+  phpipam-logo:
+  phpipam-ca:
+
+
+networks:
+  phpipam-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.255.0/24

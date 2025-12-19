@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>phpIPAM 健康檢查監控系統 - 完整說明書</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --bg2: #1e293b;
+            --card: #334155;
+            --text: #f1f5f9;
+            --text2: #94a3b8;
+            --green: #22c55e;
+            --blue: #3b82f6;
+            --orange: #f97316;
+            --purple: #a855f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text2);
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: var(--bg2);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 28px;
+            border: 1px solid var(--card);
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2::before {
+            content: '';
+            width: 5px;
+            height: 28px;
+            background: var(--blue);
+            border-radius: 3px;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            color: var(--blue);
+            margin: 20px 0 12px 0;
+        }
+
+        h4 {
+            font-size: 1rem;
+            color: var(--orange);
+            margin: 16px 0 8px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        th,
+        td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--card);
+        }
+
+        th {
+            color: var(--text2);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            background: rgba(51, 65, 85, 0.3);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--green);
+        }
+
+        .badge.info {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--blue);
+        }
+
+        pre {
+            background: #0a0f1a;
+            padding: 18px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            margin: 12px 0;
+            border: 1px solid var(--card);
+        }
+
+        code {
+            color: var(--green);
+            font-family: 'Consolas', monospace;
+        }
+
+        .code-inline {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: var(--blue);
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+
+        ul,
+        ol {
+            padding-left: 24px;
+            margin: 12px 0;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text2);
+            margin-top: 6px;
+        }
+
+        a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .toc {
+            background: var(--card);
+            padding: 20px 28px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .toc a {
+            display: block;
+            padding: 6px 0;
+            color: var(--text);
+        }
+
+        .toc a:hover {
+            color: var(--blue);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--blue);
+        }
+
+        .feature-card h4 {
+            margin-top: 0;
+            color: var(--text);
+        }
+
+        .note {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--blue);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+
+        .warning {
+            background: rgba(249, 115, 22, 0.1);
+            border-left: 4px solid var(--orange);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--text2);
+            font-size: 0.9rem;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--card);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📊 phpIPAM 健康檢查監控系統</h1>
+        <p class="subtitle">完整說明書 v2.0 | 2025-12-19</p>
+
+        <!-- 目錄 -->
+        <div class="card">
+            <h2>📑 目錄</h2>
+            <div class="toc">
+                <a href="#overview">1. 系統概覽</a>
+                <a href="#features">2. 功能特色</a>
+                <a href="#dashboard">3. Dashboard 使用說明</a>
+                <a href="#api">4. API 參考</a>
+                <a href="#dhcp-management">5. DHCP 伺服器管理</a>
+                <a href="#deployment">6. Docker 部署說明</a>
+                <a href="#maintenance">7. 維護與故障排除</a>
+            </div>
+        </div>
+
+        <!-- 系統概覽 -->
+        <div class="card" id="overview">
+            <h2>1. 系統概覽</h2>
+            <p>phpIPAM 健康檢查監控系統提供 24 小時歷史統計功能，用於監控系統資源和 DHCP 伺服器狀態。</p>
+
+            <div class="grid">
+                <div class="stat-box">
+                    <div class="stat-value">✅</div>
+                    <div class="stat-label">即時監控</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">24h</div>
+                    <div class="stat-label">歷史統計</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">DHCP 伺服器</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">5 min</div>
+                    <div class="stat-label">資料採集間隔</div>
+                </div>
+            </div>
+
+            <h3>Dashboard URL</h3>
+            <p><a href="https://ipam-tw.pouchen.com/health_dashboard/"
+                    target="_blank">https://ipam-tw.pouchen.com/health_dashboard/</a></p>
+        </div>
+
+        <!-- 功能特色 -->
+        <div class="card" id="features">
+            <h2>2. 功能特色</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🌙 Light/Dark Mode</h4>
+                    <p>支援深色和淺色主題切換，自動記憶使用者偏好</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🌐 多語系支援</h4>
+                    <p>English / 简体中文 / 繁體中文 三種語言切換</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📈 即時曲線圖</h4>
+                    <p>系統資源和 DHCP 延遲趨勢視覺化</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚙️ DHCP 管理 UI</h4>
+                    <p>視覺化新增、編輯、刪除 DHCP 伺服器</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 自動更新</h4>
+                    <p>每 60 秒自動重新整理資料</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 24 小時統計</h4>
+                    <p>avg / min / max 統計數據查詢</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard 使用說明 -->
+        <div class="card" id="dashboard">
+            <h2>3. Dashboard 使用說明</h2>
+
+            <h3>3.1 主題切換</h3>
+            <p>點擊右上角的 🌙 / ☀️ 按鈕切換深色/淺色主題。設定會自動儲存到瀏覽器。</p>
+
+            <h3>3.2 語系切換</h3>
+            <p>使用右上角的下拉選單選擇語言：</p>
+            <ul>
+                <li><strong>English</strong> - 英文（預設）</li>
+                <li><strong>简体中文</strong> - 簡體中文</li>
+                <li><strong>繁體中文</strong> - 繁體中文</li>
+            </ul>
+
+            <h3>3.3 監控頁籤 (Monitor)</h3>
+            <ul>
+                <li><strong>系統資源</strong>：CPU、記憶體、磁碟使用率 (即時數值 + 曲線圖)</li>
+                <li><strong>DHCP 延遲趨勢</strong>：各伺服器 ping 延遲曲線圖</li>
+                <li><strong>DHCP 狀態表格</strong>：主機名稱、IP、狀態、延遲、時間</li>
+            </ul>
+
+            <h3>3.4 DHCP 管理頁籤</h3>
+            <ul>
+                <li>點擊 <span class="code-inline">+ 新增</span> 按鈕新增伺服器</li>
+                <li>點擊 <span class="code-inline">編輯</span> 按鈕修改伺服器資訊</li>
+                <li>點擊 <span class="code-inline">刪除</span> 按鈕移除伺服器（需確認）</li>
+            </ul>
+        </div>
+
+        <!-- API 參考 -->
+        <div class="card" id="api">
+            <h2>4. API 參考</h2>
+
+            <h3>4.1 統計 API</h3>
+            <p>Base URL: <span class="code-inline">/health_dashboard/api/api_stats.php</span></p>
+
+            <h4>取得最新狀態</h4>
+            <pre><code>GET /health_dashboard/api/api_stats.php?action=latest</code></pre>
+
+            <h4>取得系統歷史資料</h4>
+            <pre><code>GET /health_dashboard/api/api_stats.php?action=system_history&hours=24</code></pre>
+
+            <h4>取得 DHCP 歷史資料</h4>
+            <pre><code>GET /health_dashboard/api/api_stats.php?action=dhcp_history&hours=24</code></pre>
+
+            <h3>4.2 DHCP 配置 API</h3>
+            <p>Base URL: <span class="code-inline">/health_dashboard/api/api_dhcp_config.php</span></p>
+
+            <h4>查詢所有伺服器</h4>
+            <pre><code>curl -sk "https://ipam-tw.pouchen.com/health_dashboard/api/api_dhcp_config.php"</code></pre>
+
+            <h4>新增伺服器</h4>
+            <pre><code>curl -sk -X POST -H "Content-Type: application/json" \
+  -d '{"ip":"10.1.1.1","hostname":"NEW-DHCP","location":"新據點"}' \
+  "https://ipam-tw.pouchen.com/health_dashboard/api/api_dhcp_config.php"</code></pre>
+
+            <h4>修改伺服器</h4>
+            <pre><code>curl -sk -X PUT -H "Content-Type: application/json" \
+  -d '{"hostname":"Updated-Name","location":"新位置"}' \
+  "https://ipam-tw.pouchen.com/health_dashboard/api/api_dhcp_config.php?ip=10.1.1.1"</code></pre>
+
+            <h4>刪除伺服器</h4>
+            <pre><code>curl -sk -X DELETE \
+  "https://ipam-tw.pouchen.com/health_dashboard/api/api_dhcp_config.php?ip=10.1.1.1"</code></pre>
+        </div>
+
+        <!-- DHCP 伺服器管理 -->
+        <div class="card" id="dhcp-management">
+            <h2>5. DHCP 伺服器管理</h2>
+
+            <h3>5.1 方式一：Dashboard UI（建議）</h3>
+            <ol>
+                <li>開啟 Dashboard: <a
+                        href="https://ipam-tw.pouchen.com/health_dashboard/">https://ipam-tw.pouchen.com/health_dashboard/</a>
+                </li>
+                <li>點擊 <strong>DHCP</strong> 頁籤</li>
+                <li>使用介面上的按鈕進行新增、編輯、刪除操作</li>
+            </ol>
+
+            <h3>5.2 方式二：直接編輯 JSON 檔案</h3>
+            <pre><code># 從容器複製出來
+docker cp phpipam_phpipam-web_1:/phpipam/health_dashboard/config/dhcp_servers.json /tmp/
+
+# 編輯檔案
+vi /tmp/dhcp_servers.json
+
+# 複製回容器
+docker cp /tmp/dhcp_servers.json phpipam_phpipam-web_1:/phpipam/health_dashboard/config/
+docker cp /tmp/dhcp_servers.json phpipam_phpipam-cron_1:/health_check/config/</code></pre>
+
+            <h3>5.3 方式三：使用 curl API</h3>
+            <p>請參考上方 API 參考章節的 DHCP 配置 API。</p>
+
+            <h3>5.4 目前監控的 DHCP 伺服器</h3>
+            <table>
+                <tr>
+                    <th>IP 位址</th>
+                    <th>主機名稱</th>
+                    <th>位置</th>
+                </tr>
+                <tr>
+                    <td>172.16.5.196</td>
+                    <td>DHCP-CH-HQ2</td>
+                    <td>彰化總公司</td>
+                </tr>
+                <tr>
+                    <td>172.23.13.10</td>
+                    <td>DHCP-CH-PGT</td>
+                    <td>彰化PGT_G3</td>
+                </tr>
+                <tr>
+                    <td>172.23.174.5</td>
+                    <td>DHCP-TC-HQ</td>
+                    <td>台中總部</td>
+                </tr>
+                <tr>
+                    <td>172.23.199.150</td>
+                    <td>DHCP-TC-UAIC</td>
+                    <td>台中光威</td>
+                </tr>
+                <tr>
+                    <td>172.23.110.1</td>
+                    <td>DHCP-TP-XY</td>
+                    <td>台北信義</td>
+                </tr>
+                <tr>
+                    <td>172.23.94.254</td>
+                    <td>DHCP-TP-BaoYu</td>
+                    <td>台北寶裕</td>
+                </tr>
+                <tr>
+                    <td>172.23.127.169</td>
+                    <td>DHCP-TC-CBD</td>
+                    <td>台中CBD</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Docker 部署說明 -->
+        <div class="card" id="deployment">
+            <h2>6. Docker 部署說明</h2>
+
+            <h3>6.1 環境資訊</h3>
+            <table>
+                <tr>
+                    <th>項目</th>
+                    <th>值</th>
+                </tr>
+                <tr>
+                    <td>伺服器</td>
+                    <td>stwphpipam-p (ipam-tw.pouchen.com)</td>
+                </tr>
+                <tr>
+                    <td>phpIPAM 版本</td>
+                    <td>v1.7.4</td>
+                </tr>
+                <tr>
+                    <td>Web 容器</td>
+                    <td>phpipam_phpipam-web_1</td>
+                </tr>
+                <tr>
+                    <td>Cron 容器</td>
+                    <td>phpipam_phpipam-cron_1</td>
+                </tr>
+                <tr>
+                    <td>MariaDB 容器</td>
+                    <td>phpipam_phpipam-mariadb_1</td>
+                </tr>
+            </table>
+
+            <h3>6.2 檔案位置</h3>
+            <h4>Web 容器 (phpipam_phpipam-web_1)</h4>
+            <pre><code>/phpipam/health_dashboard/
+├── index.html           # Dashboard 主頁
+├── api/
+│   ├── api_stats.php       # 統計 API
+│   └── api_dhcp_config.php # DHCP 配置 API
+├── config/
+│   └── dhcp_servers.json   # DHCP 伺服器配置
+└── includes/
+    ├── StatsCalculator.php
+    └── HistoryCollector.php</code></pre>
+
+            <h4>Cron 容器 (phpipam_phpipam-cron_1)</h4>
+            <pre><code>/health_check/
+├── scripts/
+│   └── collect_stats.php   # 資料收集腳本
+├── includes/
+│   ├── StatsCalculator.php
+│   └── HistoryCollector.php
+└── config/
+    └── dhcp_servers.json</code></pre>
+
+            <h3>6.3 Cron 設定</h3>
+            <pre><code>*/5 * * * * php /health_check/scripts/collect_stats.php >> /var/log/health_check.log 2>&1</code></pre>
+
+            <h3>6.4 資料表</h3>
+            <ul>
+                <li><span class="code-inline">health_check_system_history</span> - 系統資源歷史</li>
+                <li><span class="code-inline">health_check_dhcp_history</span> - DHCP 延遲歷史</li>
+            </ul>
+        </div>
+
+        <!-- 維護與故障排除 -->
+        <div class="card" id="maintenance">
+            <h2>7. 維護與故障排除</h2>
+
+            <h3>7.1 檢查 Cron 是否正常運作</h3>
+            <pre><code># 查看 Cron 日誌
+docker exec phpipam_phpipam-cron_1 tail -20 /var/log/health_check.log
+
+# 手動執行收集腳本
+docker exec phpipam_phpipam-cron_1 php /health_check/scripts/collect_stats.php</code></pre>
+
+            <h3>7.2 檢查資料庫資料</h3>
+            <pre><code># 查看系統資源歷史
+docker exec phpipam_phpipam-mariadb_1 mariadb -u phpipam -p*** phpipam \
+  -e "SELECT * FROM health_check_system_history ORDER BY id DESC LIMIT 5"
+
+# 查看 DHCP 歷史
+docker exec phpipam_phpipam-mariadb_1 mariadb -u phpipam -p*** phpipam \
+  -e "SELECT * FROM health_check_dhcp_history ORDER BY id DESC LIMIT 10"</code></pre>
+
+            <h3>7.3 測試 API</h3>
+            <pre><code># 在容器內測試
+docker exec phpipam_phpipam-web_1 php /phpipam/health_dashboard/api/api_stats.php
+
+# 透過 HTTPS 測試
+curl -sk "https://ipam-tw.pouchen.com/health_dashboard/api/api_stats.php?action=latest"</code></pre>
+
+            <h3>7.4 更新 Dashboard</h3>
+            <pre><code># 複製本地檔案到容器
+docker cp /path/to/index.html phpipam_phpipam-web_1:/phpipam/health_dashboard/</code></pre>
+
+            <h3>7.5 DHCP Management 與 Monitor 的關係</h3>
+            <div class="note">
+                <strong>💡 重要說明</strong>
+                <p><strong>DHCP Management</strong> 管理的是「配置」，決定 Cron 要收集哪些 DHCP 伺服器的資料。</p>
+                <p><strong>Monitor</strong> 顯示的是「資料庫歷史資料」，包含所有曾經收集過的記錄。</p>
+                <p>因此：</p>
+                <ul>
+                    <li>在 DHCP Management 刪除 DHCP 伺服器後，<strong>舊資料仍會保留在 Monitor 中</strong></li>
+                    <li>新增 DHCP 伺服器後，需要等待下次 Cron 執行（每 5 分鐘）才會出現在 Monitor</li>
+                    <li>歷史資料會在 7 天後自動清理</li>
+                </ul>
+            </div>
+
+            <h3>7.6 手動刪除 DHCP 歷史資料</h3>
+            <p>如果需要立即從 Monitor 移除已刪除的 DHCP 伺服器資料，請執行以下命令：</p>
+            <pre><code># 刪除指定 IP 的所有歷史記錄
+docker exec phpipam_phpipam-mariadb_1 mariadb -u phpipam -pmy_secret_phpipam_pass phpipam \
+  -e "DELETE FROM health_check_dhcp_history WHERE dhcp_ip = '要刪除的IP'"
+
+# 範例：刪除 172.23.127.69 的歷史資料
+docker exec phpipam_phpipam-mariadb_1 mariadb -u phpipam -pmy_secret_phpipam_pass phpipam \
+  -e "DELETE FROM health_check_dhcp_history WHERE dhcp_ip = '172.23.127.69'"
+
+# 確認刪除結果
+docker exec phpipam_phpipam-mariadb_1 mariadb -u phpipam -pmy_secret_phpipam_pass phpipam \
+  -e "SELECT DISTINCT dhcp_ip, dhcp_hostname FROM health_check_dhcp_history ORDER BY dhcp_ip"</code></pre>
+
+            <h3>7.7 同步 DHCP 配置到 Cron 容器</h3>
+            <p>在 DHCP Management 新增或修改 DHCP 伺服器後，需要同步配置到 Cron 容器：</p>
+            <pre><code># 同步配置
+docker cp phpipam_phpipam-web_1:/phpipam/health_dashboard/config/dhcp_servers.json /tmp/
+docker cp /tmp/dhcp_servers.json phpipam_phpipam-cron_1:/health_check/config/
+
+# 手動執行收集（不用等 5 分鐘）
+docker exec phpipam_phpipam-cron_1 php /health_check/scripts/collect_stats.php</code></pre>
+
+            <div class="warning">
+                <strong>⚠️ 注意事項</strong>
+                <ul>
+                    <li>修改 DHCP 伺服器配置後，需要同步到 Cron 容器並等待收集腳本執行才會生效</li>
+                    <li>刪除 DHCP 配置不會自動刪除歷史資料，如需立即生效請手動刪除歷史記錄</li>
+                    <li>資料保留 7 天，超過會自動清理</li>
+                    <li>容器重啟後 Dashboard 檔案會保留，但需確認 Volume 設定</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>📊 phpIPAM 健康檢查監控系統 v2.0</p>
+            <p>報告生成時間：2025-12-19 11:54</p>
+            <p>Jason Cheng | IT Infrastructure</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+[
+    {
+        "ip": "192.168.1.1",
+        "hostname": "DHCP-Server-01",
+        "location": "總部機房",
+        "enabled": true
+    },
+    {
+        "ip": "192.168.2.1",
+        "hostname": "DHCP-Server-02",
+        "location": "分部機房",
+        "enabled": true
+    }
+]

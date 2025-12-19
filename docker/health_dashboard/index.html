@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>phpIPAM Health Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --bg2: #1e293b;
+            --card: #334155;
+            --text: #f1f5f9;
+            --text2: #94a3b8;
+            --green: #22c55e;
+            --red: #ef4444;
+            --blue: #3b82f6;
+            --purple: #a855f7;
+            --orange: #f97316;
+            --input-bg: #1e293b;
+            --input-border: #475569;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --bg2: #ffffff;
+            --card: #e2e8f0;
+            --text: #1e293b;
+            --text2: #64748b;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            transition: background .3s, color .3s
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--card);
+            flex-wrap: wrap;
+            gap: 12px
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .status {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s infinite
+        }
+
+        .dot.offline {
+            background: var(--red)
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .5
+            }
+        }
+
+        select,
+        input {
+            background: var(--input-bg);
+            color: var(--text);
+            border: 1px solid var(--input-border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: .875rem
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px
+        }
+
+        .card {
+            background: var(--bg2);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--card);
+            transition: background .3s
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px
+        }
+
+        .stat {
+            background: var(--card);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            transition: background .3s
+        }
+
+        .stat-val {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--blue)
+        }
+
+        .stat-lbl {
+            font-size: .75rem;
+            color: var(--text2);
+            margin-top: 4px
+        }
+
+        .chart-box {
+            height: 200px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--card)
+        }
+
+        th {
+            color: var(--text2);
+            font-size: .75rem;
+            text-transform: uppercase
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: .75rem;
+            font-weight: 600
+        }
+
+        .badge.on {
+            background: rgba(34, 197, 94, .2);
+            color: var(--green)
+        }
+
+        .badge.off {
+            background: rgba(239, 68, 68, .2);
+            color: var(--red)
+        }
+
+        .lat {
+            font-family: monospace;
+            color: var(--orange)
+        }
+
+        .btn {
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .875rem;
+            transition: opacity .2s
+        }
+
+        .btn:hover {
+            opacity: .8
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: .75rem
+        }
+
+        .btn-danger {
+            background: var(--red)
+        }
+
+        .btn-success {
+            background: var(--green)
+        }
+
+        .time {
+            color: var(--text2);
+            font-size: .75rem
+        }
+
+        .theme-toggle {
+            background: var(--card);
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background .3s
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center
+        }
+
+        .modal.active {
+            display: flex
+        }
+
+        .modal-content {
+            background: var(--bg2);
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--card)
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px
+        }
+
+        .form-group {
+            margin-bottom: 16px
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: .875rem;
+            color: var(--text2)
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            background: var(--card);
+            color: var(--text);
+            border: none;
+            font-size: .875rem;
+            transition: background .2s
+        }
+
+        .tab.active {
+            background: var(--blue);
+            color: #fff
+        }
+
+        .server-list {
+            min-height: 100px
+        }
+
+        .server-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--card);
+            border-radius: 8px;
+            margin-bottom: 8px
+        }
+
+        .server-info {
+            flex: 1
+        }
+
+        .server-actions {
+            display: flex;
+            gap: 8px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1 id="title">phpIPAM Health Monitor</h1>
+        <div class="controls">
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+            <select id="langSelect" onchange="changeLang(this.value)">
+                <option value="en">English</option>
+                <option value="zh-CN">简体中文</option>
+                <option value="zh-TW">繁體中文</option>
+            </select>
+            <div class="status"><span class="dot" id="dot"></span><span id="st">Connecting...</span></div>
+            <button class="btn" onclick="refresh()" id="refreshBtn">Refresh</button>
+            <span class="time" id="upd"></span>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('monitor')" id="tabMonitor">Monitor</button>
+        <button class="tab" onclick="showTab('manage')" id="tabManage">DHCP Management</button>
+    </div>
+
+    <div id="monitorPanel">
+        <div class="grid">
+            <div class="card">
+                <div class="card-title" id="sysTitle">System Resources</div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-val" id="cpu">--</div>
+                        <div class="stat-lbl" id="cpuLbl">CPU</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-val" id="mem">--</div>
+                        <div class="stat-lbl" id="memLbl">Memory</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-val" id="disk">--</div>
+                        <div class="stat-lbl" id="diskLbl">Disk</div>
+                    </div>
+                </div>
+                <div class="chart-box"><canvas id="sysChart"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-title" id="dhcpTitle">DHCP Latency Trend</div>
+                <div class="chart-box"><canvas id="dhcpChart"></canvas></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title" id="dhcpStatusTitle">DHCP Server Status</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th id="thHost">Hostname</th>
+                        <th id="thIP">IP</th>
+                        <th id="thStatus">Status</th>
+                        <th id="thLat">Latency</th>
+                        <th id="thTime">Time</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl">
+                    <tr>
+                        <td colspan="5">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="managePanel" style="display:none">
+        <div class="card">
+            <div class="card-title"><span id="manageTitle">DHCP Server Management</span>
+                <button class="btn btn-success" onclick="openAddModal()" id="addBtn">+ Add Server</button>
+            </div>
+            <div class="server-list" id="serverList"></div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="serverModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">Add Server</div>
+            <div class="form-group">
+                <label id="lblIP">IP Address</label>
+                <input type="text" id="inputIP" placeholder="e.g. 192.168.1.1">
+            </div>
+            <div class="form-group">
+                <label id="lblHost">Hostname</label>
+                <input type="text" id="inputHost" placeholder="e.g. DHCP-Server-01">
+            </div>
+            <div class="form-group">
+                <label id="lblLoc">Location</label>
+                <input type="text" id="inputLoc" placeholder="e.g. Building A">
+            </div>
+            <div class="form-actions">
+                <button class="btn" style="background:var(--card);color:var(--text)" onclick="closeModal()"
+                    id="cancelBtn">Cancel</button>
+                <button class="btn btn-success" onclick="saveServer()" id="saveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "/health_dashboard/api/api_stats.php";
+        const DHCP_API = "/health_dashboard/api/api_dhcp_config.php";
+        const i18n = {
+            en: { title: "phpIPAM Health Monitor", st: "Online", stOff: "Offline", stFail: "Connection Failed", refresh: "Refresh", sys: "System Resources", cpu: "CPU", mem: "Memory", disk: "Disk", dhcp: "DHCP Latency Trend", dhcpSt: "DHCP Server Status", host: "Hostname", ip: "IP", status: "Status", lat: "Latency", time: "Time", upd: "Updated at", tabMon: "Monitor", tabMng: "DHCP Management", manage: "DHCP Server Management", add: "+ Add Server", edit: "Edit", del: "Delete", save: "Save", cancel: "Cancel", addTitle: "Add Server", editTitle: "Edit Server", lblIP: "IP Address", lblHost: "Hostname", lblLoc: "Location", confirmDel: "Delete this server?", enabled: "Enabled", disabled: "Disabled" },
+            "zh-CN": { title: "phpIPAM 健康监控", st: "在线", stOff: "离线", stFail: "连线失败", refresh: "刷新", sys: "系统资源", cpu: "CPU", mem: "内存", disk: "磁盘", dhcp: "DHCP 延迟趋势", dhcpSt: "DHCP 服务器状态", host: "主机名", ip: "IP", status: "状态", lat: "延迟", time: "时间", upd: "更新于", tabMon: "监控", tabMng: "DHCP 管理", manage: "DHCP 服务器管理", add: "+ 新增服务器", edit: "编辑", del: "删除", save: "保存", cancel: "取消", addTitle: "新增服务器", editTitle: "编辑服务器", lblIP: "IP 地址", lblHost: "主机名", lblLoc: "位置", confirmDel: "确定删除该服务器?", enabled: "启用", disabled: "停用" },
+            "zh-TW": { title: "phpIPAM 健康監控", st: "線上", stOff: "離線", stFail: "連線失敗", refresh: "重整", sys: "系統資源", cpu: "CPU", mem: "記憶體", disk: "磁碟", dhcp: "DHCP 延遲趨勢", dhcpSt: "DHCP 伺服器狀態", host: "主機名稱", ip: "IP", status: "狀態", lat: "延遲", time: "時間", upd: "更新於", tabMon: "監控", tabMng: "DHCP 管理", manage: "DHCP 伺服器管理", add: "+ 新增伺服器", edit: "編輯", del: "刪除", save: "儲存", cancel: "取消", addTitle: "新增伺服器", editTitle: "編輯伺服器", lblIP: "IP 位址", lblHost: "主機名稱", lblLoc: "位置", confirmDel: "確定刪除此伺服器?", enabled: "啟用", disabled: "停用" }
+        };
+        let lang = localStorage.getItem("lang") || "en";
+        let theme = localStorage.getItem("theme") || "dark";
+        let sC, dC, editingIP = null;
+
+        function t(k) { return (i18n[lang] || i18n.en)[k] || k; }
+        function changeLang(l) { lang = l; localStorage.setItem("lang", l); applyLang(); }
+        function toggleTheme() {
+            theme = theme === "dark" ? "light" : "dark";
+            localStorage.setItem("theme", theme);
+            applyTheme();
+        }
+        function applyTheme() {
+            document.documentElement.setAttribute("data-theme", theme);
+            document.getElementById("themeBtn").textContent = theme === "dark" ? "🌙" : "☀️";
+        }
+        function applyLang() {
+            document.getElementById("title").textContent = t("title");
+            document.getElementById("sysTitle").textContent = t("sys");
+            document.getElementById("cpuLbl").textContent = t("cpu");
+            document.getElementById("memLbl").textContent = t("mem");
+            document.getElementById("diskLbl").textContent = t("disk");
+            document.getElementById("dhcpTitle").textContent = t("dhcp");
+            document.getElementById("dhcpStatusTitle").textContent = t("dhcpSt");
+            document.getElementById("thHost").textContent = t("host");
+            document.getElementById("thIP").textContent = t("ip");
+            document.getElementById("thStatus").textContent = t("status");
+            document.getElementById("thLat").textContent = t("lat");
+            document.getElementById("thTime").textContent = t("time");
+            document.getElementById("refreshBtn").textContent = t("refresh");
+            document.getElementById("tabMonitor").textContent = t("tabMon");
+            document.getElementById("tabManage").textContent = t("tabMng");
+            document.getElementById("manageTitle").textContent = t("manage");
+            document.getElementById("addBtn").textContent = t("add");
+            document.getElementById("cancelBtn").textContent = t("cancel");
+            document.getElementById("saveBtn").textContent = t("save");
+            document.getElementById("lblIP").textContent = t("lblIP");
+            document.getElementById("lblHost").textContent = t("lblHost");
+            document.getElementById("lblLoc").textContent = t("lblLoc");
+            document.getElementById("langSelect").value = lang;
+        }
+        function showTab(tab) {
+            document.getElementById("monitorPanel").style.display = tab === "monitor" ? "block" : "none";
+            document.getElementById("managePanel").style.display = tab === "manage" ? "block" : "none";
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            document.getElementById(tab === "monitor" ? "tabMonitor" : "tabManage").classList.add("active");
+            if (tab === "manage") loadServers();
+        }
+        function openAddModal() {
+            editingIP = null; document.getElementById("modalTitle").textContent = t("addTitle");
+            document.getElementById("inputIP").value = ""; document.getElementById("inputHost").value = ""; document.getElementById("inputLoc").value = "";
+            document.getElementById("inputIP").disabled = false; document.getElementById("serverModal").classList.add("active");
+        }
+        function openEditModal(ip, host, loc) {
+            editingIP = ip; document.getElementById("modalTitle").textContent = t("editTitle");
+            document.getElementById("inputIP").value = ip; document.getElementById("inputHost").value = host; document.getElementById("inputLoc").value = loc;
+            document.getElementById("inputIP").disabled = true; document.getElementById("serverModal").classList.add("active");
+        }
+        function closeModal() { document.getElementById("serverModal").classList.remove("active"); }
+        async function saveServer() {
+            const ip = document.getElementById("inputIP").value.trim();
+            const host = document.getElementById("inputHost").value.trim();
+            const loc = document.getElementById("inputLoc").value.trim();
+            if (!ip) { alert("IP required"); return; }
+            try {
+                if (editingIP) {
+                    await fetch(DHCP_API + "?ip=" + editingIP, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ hostname: host, location: loc }) });
+                } else {
+                    await fetch(DHCP_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ip, hostname: host, location: loc }) });
+                }
+                closeModal(); loadServers();
+            } catch (e) { alert("Error: " + e.message); }
+        }
+        async function deleteServer(ip) {
+            if (!confirm(t("confirmDel"))) return;
+            try { await fetch(DHCP_API + "?ip=" + ip, { method: "DELETE" }); loadServers(); } catch (e) { alert("Error: " + e.message); }
+        }
+        async function loadServers() {
+            try {
+                const r = await fetch(DHCP_API); const j = await r.json();
+                if (j.success) {
+                    document.getElementById("serverList").innerHTML = j.data.map(s => `
+                <div class="server-item">
+                    <div class="server-info">
+                        <strong>${s.hostname || s.ip}</strong><br>
+                        <span style="color:var(--text2);font-size:.875rem">${s.ip} · ${s.location || "-"}</span>
+                    </div>
+                    <div class="server-actions">
+                        <span class="badge ${s.enabled ? "on" : "off"}">${s.enabled ? t("enabled") : t("disabled")}</span>
+                        <button class="btn btn-sm" onclick="openEditModal('${s.ip}','${s.hostname || ""}','${s.location || ""}')">${t("edit")}</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteServer('${s.ip}')">${t("del")}</button>
+                    </div>
+                </div>`).join("");
+                }
+            } catch (e) { console.error(e); }
+        }
+        function init() {
+            const c1 = document.getElementById("sysChart").getContext("2d");
+            sC = new Chart(c1, { type: "line", data: { labels: [], datasets: [{ label: "CPU", data: [], borderColor: "#3b82f6", tension: .3, fill: false }, { label: "Mem", data: [], borderColor: "#22c55e", tension: .3, fill: false }, { label: "Disk", data: [], borderColor: "#f97316", tension: .3, fill: false }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#94a3b8" } } }, scales: { x: { ticks: { color: "#94a3b8", maxTicksLimit: 12 }, grid: { color: "#334155" } }, y: { min: 0, max: 100, ticks: { color: "#94a3b8" }, grid: { color: "#334155" } } } } });
+            const c2 = document.getElementById("dhcpChart").getContext("2d");
+            dC = new Chart(c2, { type: "line", data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#94a3b8" } } }, scales: { x: { ticks: { color: "#94a3b8", maxTicksLimit: 12 }, grid: { color: "#334155" } }, y: { min: 0, ticks: { color: "#94a3b8" }, grid: { color: "#334155" } } } } });
+        }
+        async function loadSys() { try { const r = await fetch(API + "?action=system_history"); const j = await r.json(); if (j.success && j.data && j.data.length) { const l = j.data.map(d => d.time.split(" ")[1]); sC.data.labels = l; sC.data.datasets[0].data = j.data.map(d => parseFloat(d.cpu)); sC.data.datasets[1].data = j.data.map(d => parseFloat(d.memory)); sC.data.datasets[2].data = j.data.map(d => parseFloat(d.disk)); sC.update(); const x = j.data[j.data.length - 1]; document.getElementById("cpu").textContent = x.cpu + "%"; document.getElementById("mem").textContent = x.memory + "%"; document.getElementById("disk").textContent = x.disk + "%"; } } catch (e) { console.error(e); } }
+        async function loadDhcp() { try { const r = await fetch(API + "?action=dhcp_history"); const j = await r.json(); if (j.success && j.data && j.data.length) { const g = {}; j.data.forEach(d => { if (!g[d.ip]) g[d.ip] = { h: d.hostname, d: [] }; g[d.ip].d.push({ t: d.time, l: parseFloat(d.latency) }); }); const ts = [...new Set(j.data.map(d => d.time))]; const lb = ts.map(x => x.split(" ")[1]); const cl = ["#3b82f6", "#22c55e", "#f97316", "#a855f7", "#ef4444", "#06b6d4"]; const ds = Object.keys(g).map((ip, i) => ({ label: g[ip].h || ip, data: ts.map(x => { const f = g[ip].d.find(y => y.t === x); return f ? f.l : null; }), borderColor: cl[i % 6], tension: .3, fill: false })); dC.data.labels = lb; dC.data.datasets = ds; dC.update(); } } catch (e) { console.error(e); } }
+        async function loadLatest() { try { const r = await fetch(API + "?action=latest"); const j = await r.json(); if (j.success && j.data.dhcp) { document.getElementById("tbl").innerHTML = j.data.dhcp.map(d => "<tr><td><b>" + (d.dhcp_hostname || "-") + "</b></td><td>" + d.dhcp_ip + "</td><td><span class=\"badge " + (d.reachable ? "on" : "off") + "\">" + (d.reachable ? t("st") : t("stOff")) + "</span></td><td class=\"lat\">" + (d.latency_ms ? parseFloat(d.latency_ms).toFixed(2) + " ms" : "-") + "</td><td>" + (d.recorded_at ? new Date(d.recorded_at).toLocaleTimeString() : "-") + "</td></tr>").join(""); document.getElementById("st").textContent = t("st"); document.getElementById("dot").className = "dot"; } else throw new Error(); } catch (e) { document.getElementById("st").textContent = t("stFail"); document.getElementById("dot").className = "dot offline"; } }
+        function refresh() { loadLatest(); loadSys(); loadDhcp(); document.getElementById("upd").textContent = t("upd") + " " + new Date().toLocaleTimeString(); }
+        document.addEventListener("DOMContentLoaded", () => { applyTheme(); applyLang(); init(); refresh(); setInterval(refresh, 60000); });
+    </script>
+</body>
+
+</html>

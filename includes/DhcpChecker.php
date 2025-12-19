@@ -35,6 +35,36 @@ class DhcpChecker {
     }
     
     /**
+     * 檢查 DHCP 伺服器並包含 24 小時歷史統計
+     * 
+     * @param string|array $ips IP 位址
+     * @param PDO $db 資料庫連線 (可選)
+     * @param int $count Ping 次數
+     * @param int $timeout 逾時秒數
+     * @return array 檢查結果 (含歷史統計)
+     */
+    public static function checkWithHistory($ips, $db = null, $count = 4, $timeout = 2) {
+        // 先執行即時檢查
+        $current = self::check($ips, $count, $timeout);
+        
+        // 如果沒有資料庫連線，直接返回即時結果
+        if ($db === null) {
+            return $current;
+        }
+        
+        // 載入統計計算器
+        require_once(__DIR__ . '/StatsCalculator.php');
+        
+        // 為每個結果加入 24 小時統計
+        foreach ($current as &$result) {
+            $stats = StatsCalculator::getDhcpStats24h($db, $result['ip']);
+            $result['stats_24h'] = $stats;
+        }
+        
+        return $current;
+    }
+    
+    /**
      * 檢查單一 DHCP 伺服器
      * 
      * @param string $ip IP 位址

@@ -8,6 +8,7 @@
 - ✅ phpIPAM 主機系統資訊（CPU、記憶體、硬碟、運行時間）
 - ✅ 網路流量統計（24 小時）
 - ✅ DHCP 伺服器連線狀態
+- ✅ **24 小時歷史統計** (avg/min/max) - NEW
 
 ## 專案結構
 
@@ -20,7 +21,13 @@ dev-phpipam/
 ├── includes/
 │   ├── SystemInfo.php              # 系統資訊收集
 │   ├── NetworkStats.php            # 網路統計
-│   └── DhcpChecker.php             # DHCP 檢查
+│   ├── DhcpChecker.php             # DHCP 檢查
+│   ├── HistoryCollector.php        # 歷史資料收集器 (NEW)
+│   └── StatsCalculator.php         # 統計計算器 (NEW)
+├── scripts/
+│   └── collect_stats.php           # Cron 排程腳本 (NEW)
+├── database/
+│   └── health_check_tables.sql     # 資料庫結構 (NEW)
 ├── config/
 │   └── health_check_config.php     # 配置檔
 └── tests/
