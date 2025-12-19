@@ -1,106 +1,170 @@
-# dev-phpipam - phpIPAM 伺服器端健康檢查 API
+# phpIPAM Health Dashboard
 
-為 phpIPAM 伺服器端開發完整的健康檢查 API，提供系統資訊給 MCP tool 調用。
+[![phpIPAM](https://img.shields.io/badge/phpIPAM-v1.7.4-blue)](https://phpipam.net/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-## 專案目標
+為 phpIPAM 提供完整的健康檢查監控 Dashboard，包含 24 小時歷史統計、DHCP 伺服器動態管理、多語系介面。
 
-擴展 phpIPAM API 功能，新增健康檢查 endpoint，回傳：
-- ✅ phpIPAM 主機系統資訊（CPU、記憶體、硬碟、運行時間）
-- ✅ 網路流量統計（24 小時）
-- ✅ DHCP 伺服器連線狀態
-- ✅ **24 小時歷史統計** (avg/min/max) - NEW
+![Dashboard Screenshot](docs/dashboard-screenshot.png)
 
-## 專案結構
+## ✨ 功能特色
 
-```
-dev-phpipam/
-├── README.md                       # 專案說明
-├── DEPLOYMENT.md                   # 部署文件
-├── api/
-│   └── HealthCheckController.php   # API Controller
-├── includes/
-│   ├── SystemInfo.php              # 系統資訊收集
-│   ├── NetworkStats.php            # 網路統計
-│   ├── DhcpChecker.php             # DHCP 檢查
-│   ├── HistoryCollector.php        # 歷史資料收集器 (NEW)
-│   └── StatsCalculator.php         # 統計計算器 (NEW)
-├── scripts/
-│   └── collect_stats.php           # Cron 排程腳本 (NEW)
-├── database/
-│   └── health_check_tables.sql     # 資料庫結構 (NEW)
-├── config/
-│   └── health_check_config.php     # 配置檔
-└── tests/
-    └── test_health_check.php       # 測試腳本
-```
+| 功能 | 說明 |
+|------|------|
+| 🌙 Light/Dark Mode | 深色/淺色主題切換，自動記憶偏好 |
+| 🌐 多語系支援 | English / 简体中文 / 繁體中文 |
+| 📊 即時曲線圖 | 系統資源 (CPU/Mem/Disk) 及 DHCP 延遲趨勢 |
+| ⚙️ DHCP 管理 UI | 視覺化新增、編輯、刪除 DHCP 伺服器 |
+| 🔄 自動更新 | 每 60 秒自動重新整理 |
+| 📈 24小時統計 | avg / min / max 歷史數據 |
 
-## API Endpoint
+## 🚀 快速部署
 
-```
-GET /api/{app_id}/tools/daily_health_check/?dhcp_server_ip=172.16.5.196
-```
-
-### 回應範例
-
-```json
-{
-  "success": true,
-  "code": 200,
-  "data": {
-    "report_type": "daily_health_check",
-    "host_info": {
-      "hostname": "ipam-server",
-      "uptime_seconds": 2592000
-    },
-    "system_resources": {
-      "cpu": {"usage_percent": 15.5},
-      "memory": {"usage_percent": 50.0},
-      "disk": {"usage_percent": 45.0}
-    },
-    "network_stats": {
-      "last_24h": {"rx_bytes": 1073741824}
-    },
-    "dhcp_servers": [
-      {"ip": "172.16.5.196", "status": "online"}
-    ]
-  }
-}
-```
-
-## 快速開始
-
-### 開發環境
-
-- PHP 7.4+
-- phpIPAM 1.4+
-- Linux 系統（Ubuntu/CentOS）
-
-### 測試
+### 方式一：Docker Compose 一鍵部署
 
 ```bash
-# 執行單元測試
-php tests/test_health_check.php
+# 1. 複製專案
+git clone https://github.com/nox913106/DEV-phpipam.git
+cd DEV-phpipam/docker
 
-# 測試 API
-curl -X GET "http://localhost/api/mcp/tools/daily_health_check/" \
-  -H "token: YOUR_TOKEN"
+# 2. 配置環境變數
+cp .env.example .env
+vi .env  # 設定資料庫密碼
+
+# 3. 啟動服務
+docker-compose up -d
+
+# 4. 設定健康檢查 Cron (容器內)
+docker exec phpipam-cron sh -c \
+  'echo "*/5 * * * * php /health_check/scripts/collect_stats.php >> /var/log/health_check.log 2>&1" >> /etc/crontabs/root'
 ```
 
-### 部署到 phpIPAM
+### 方式二：整合至現有 phpIPAM
 
 請參考 [DEPLOYMENT.md](DEPLOYMENT.md)
 
-## 整合 MCP Tool
+## 📁 專案結構
 
-部署後，MCP tool 的 `daily_health_check` 會自動偵測並使用伺服器端 API，回傳完整的系統資訊。
+```
+dev-phpipam/
+├── dashboard/
+│   └── index.html              # Dashboard 主頁
+├── api/
+│   ├── api_stats.php           # 統計 API
+│   └── api_dhcp_config.php     # DHCP 配置 API
+├── includes/
+│   ├── HistoryCollector.php    # 歷史資料收集器
+│   └── StatsCalculator.php     # 統計計算器
+├── scripts/
+│   └── collect_stats.php       # Cron 排程腳本
+├── config/
+│   └── dhcp_servers.json       # DHCP 伺服器配置
+├── database/
+│   └── health_check_tables.sql # 資料庫結構
+├── docker/                     # Docker 一鍵部署包
+│   ├── docker-compose.yml
+│   ├── .env.example
+│   └── health_dashboard/
+└── HEALTH_CHECK_MANUAL.html    # 完整說明書
+```
 
-## 安全性
+## 📡 API 端點
+
+### 統計 API
+
+```bash
+# 取得最新狀態
+curl "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=latest"
+
+# 取得系統歷史 (24小時)
+curl "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=system_history&hours=24"
+
+# 取得 DHCP 歷史
+curl "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=dhcp_history&hours=24"
+```
+
+### DHCP 配置 API
+
+```bash
+# 查詢所有 DHCP 伺服器
+curl "https://YOUR_SERVER/health_dashboard/api/api_dhcp_config.php"
+
+# 新增
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"ip":"192.168.1.1","hostname":"DHCP-01","location":"總部"}' \
+  "https://YOUR_SERVER/health_dashboard/api/api_dhcp_config.php"
+
+# 修改
+curl -X PUT -H "Content-Type: application/json" \
+  -d '{"hostname":"Updated-Name"}' \
+  "https://YOUR_SERVER/health_dashboard/api/api_dhcp_config.php?ip=192.168.1.1"
+
+# 刪除
+curl -X DELETE "https://YOUR_SERVER/health_dashboard/api/api_dhcp_config.php?ip=192.168.1.1"
+```
+
+## ⚙️ 配置
+
+### DHCP 伺服器 (`config/dhcp_servers.json`)
+
+```json
+[
+    {"ip": "192.168.1.1", "hostname": "DHCP-01", "location": "總部", "enabled": true},
+    {"ip": "192.168.2.1", "hostname": "DHCP-02", "location": "分部", "enabled": true}
+]
+```
+
+### 環境變數 (`.env`)
+
+| 變數 | 說明 | 預設值 |
+|------|------|--------|
+| MYSQL_ROOT_PASSWORD | MariaDB root 密碼 | - |
+| MYSQL_PASSWORD | phpIPAM 密碼 | - |
+| TZ | 時區 | Asia/Taipei |
+| WEB_PORT | Web 服務埠 | 80 |
+
+## 🔧 維護
+
+```bash
+# 查看 Cron 日誌
+docker exec phpipam-cron tail -f /var/log/health_check.log
+
+# 手動執行資料收集
+docker exec phpipam-cron php /health_check/scripts/collect_stats.php
+
+# 刪除 DHCP 歷史資料
+docker exec phpipam-mariadb mysql -u phpipam -p phpipam \
+  -e "DELETE FROM health_check_dhcp_history WHERE dhcp_ip = '192.168.1.1'"
+```
+
+## 📖 文件
+
+- [DEPLOYMENT.md](DEPLOYMENT.md) - 詳細部署步驟
+- [HEALTH_CHECK_MANUAL.html](HEALTH_CHECK_MANUAL.html) - 完整說明書
+- [docker/README.md](docker/README.md) - Docker 部署說明
+
+## 🛡️ 安全性
 
 - ✅ 使用 phpIPAM Token 認證
 - ✅ 嚴格驗證所有輸入參數
 - ✅ 限制系統指令白名單
 - ✅ 記錄 API 呼叫日誌
 
-## License
+## 📝 版本
+
+- **v2.0** (2025-12-19)
+  - Dashboard: 語系切換、Light/Dark Mode、DHCP 管理 UI
+  - 24 小時歷史統計
+  - Docker 一鍵部署包
+
+- **v1.0** (2025-12-18)
+  - 基本健康檢查 API
+
+## 📄 License
 
 MIT License
+
+---
+
+**Dashboard URL**: https://ipam-tw.pouchen.com/health_dashboard/
