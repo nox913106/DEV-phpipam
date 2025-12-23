@@ -132,16 +132,20 @@
         pre {
             background: #0a0f1a;
             padding: 18px;
-            padding-right: 60px;
+            padding-right: 70px;
             border-radius: 10px;
             overflow-x: auto;
             font-size: 0.9rem;
             border: 1px solid var(--card);
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         code {
             color: var(--green);
             font-family: 'Consolas', 'Monaco', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
         .copy-btn {
@@ -149,13 +153,14 @@
             top: 8px;
             right: 8px;
             padding: 6px 12px;
-            background: var(--card);
+            background: #475569;
             border: none;
-            color: var(--text2);
+            color: var(--text);
             cursor: pointer;
             border-radius: 6px;
             font-size: 0.8rem;
             transition: all 0.2s;
+            z-index: 10;
         }
 
         .copy-btn:hover {
@@ -262,6 +267,7 @@
             padding: 20px;
             background: var(--card);
             border-radius: 10px;
+            overflow: visible;
         }
 
         .step-num {
@@ -278,6 +284,8 @@
 
         .step-content {
             flex: 1;
+            min-width: 0;
+            overflow: visible;
         }
 
         .step-title {
@@ -513,7 +521,8 @@ curl -sk "https://YOUR_SERVER/index.php?page=tools&section=health-monitor" | gre
                 <div class="success">
                     <strong>🎉 安裝完成！</strong>
                     <p>訪問：<code>https://YOUR_SERVER/health_dashboard/</code> 或
-                        <code>https://YOUR_SERVER/index.php?page=tools&section=health-monitor</code></p>
+                        <code>https://YOUR_SERVER/index.php?page=tools&section=health-monitor</code>
+                    </p>
                 </div>
             </div>
         </div>
@@ -621,7 +630,8 @@ volumes:
                 <div class="note">
                     <strong>💡 注意</strong>
                     <p>即使配置了 volume，<code>tools-menu-config.php</code> 和 <code>config.php</code> 仍需要在升級後重新執行
-                        <code>setup_phpipam_integration.sh</code> 腳本恢復。</p>
+                        <code>setup_phpipam_integration.sh</code> 腳本恢復。
+                    </p>
                 </div>
             </div>
         </div>
