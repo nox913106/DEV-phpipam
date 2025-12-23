@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>phpIPAM Health Monitor - 部署指南 v2.1</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --bg2: #1e293b;
+            --card: #334155;
+            --text: #f1f5f9;
+            --text2: #94a3b8;
+            --green: #22c55e;
+            --blue: #3b82f6;
+            --orange: #f97316;
+            --purple: #a855f7;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text2);
+            margin-bottom: 30px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 0;
+            border-bottom: 2px solid var(--card);
+        }
+
+        .tab {
+            padding: 14px 28px;
+            background: var(--bg2);
+            border: none;
+            color: var(--text2);
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: var(--card);
+            color: var(--text);
+        }
+
+        .tab.active {
+            background: var(--blue);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--bg2);
+            padding: 30px;
+            border-radius: 0 8px 8px 8px;
+            border: 1px solid var(--card);
+            border-top: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            color: var(--blue);
+            margin: 20px 0 12px 0;
+        }
+
+        h4 {
+            font-size: 1rem;
+            color: var(--orange);
+            margin: 16px 0 8px 0;
+        }
+
+        /* Code blocks */
+        .code-wrapper {
+            position: relative;
+            margin: 12px 0;
+        }
+
+        pre {
+            background: #0a0f1a;
+            padding: 18px;
+            padding-right: 60px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            border: 1px solid var(--card);
+        }
+
+        code {
+            color: var(--green);
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: var(--card);
+            border: none;
+            color: var(--text2);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--blue);
+            color: white;
+        }
+
+        .copy-btn.copied {
+            background: var(--green);
+            color: white;
+        }
+
+        /* Inline code */
+        .code-inline {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: var(--blue);
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        th,
+        td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--card);
+        }
+
+        th {
+            color: var(--text2);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            background: rgba(51, 65, 85, 0.3);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge.get {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--green);
+        }
+
+        .badge.post {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--blue);
+        }
+
+        .badge.put {
+            background: rgba(249, 115, 22, 0.2);
+            color: var(--orange);
+        }
+
+        .badge.delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+        }
+
+        /* Alerts */
+        .note {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--blue);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+
+        .warning {
+            background: rgba(249, 115, 22, 0.1);
+            border-left: 4px solid var(--orange);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+
+        .success {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid var(--green);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+
+        /* Step indicator */
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--card);
+            border-radius: 10px;
+        }
+
+        .step-num {
+            min-width: 36px;
+            height: 36px;
+            background: var(--blue);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* One-click deploy button */
+        .deploy-btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--green), #16a34a);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 16px 0;
+            transition: transform 0.2s;
+        }
+
+        .deploy-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* API endpoint */
+        .api-endpoint {
+            background: var(--card);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .api-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .api-path {
+            font-family: 'Consolas', monospace;
+            font-size: 1rem;
+        }
+
+        .api-desc {
+            color: var(--text2);
+            margin-bottom: 12px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: var(--text2);
+            font-size: 0.9rem;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--card);
+        }
+
+        ul,
+        ol {
+            padding-left: 24px;
+            margin: 12px 0;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📊 phpIPAM Health Monitor</h1>
+        <p class="subtitle">部署指南 v2.1 | 2025-12-23</p>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('new-install')">🆕 新安裝</button>
+            <button class="tab" onclick="switchTab('upgrade')">⬆️ 版本升級</button>
+            <button class="tab" onclick="switchTab('api')">📚 API 文件</button>
+        </div>
+
+        <!-- Tab 1: 新安裝 -->
+        <div id="new-install" class="tab-content active">
+            <div class="section">
+                <h2>🆕 新安裝用戶部署指南</h2>
+                <p>適用於首次安裝 phpIPAM Health Monitor 的用戶。</p>
+
+                <div class="success">
+                    <strong>✨ 一鍵部署</strong>
+                    <p>如果您的環境已有運行中的 phpIPAM Docker 容器，可以使用一鍵部署腳本：</p>
+                </div>
+
+                <div class="code-wrapper">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre><code># 一鍵部署 Health Monitor (包含 Dashboard + phpIPAM Tools 整合)
+curl -sL https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/scripts/full_deploy.sh | bash</code></pre>
+                </div>
+
+                <h3>前置需求</h3>
+                <ul>
+                    <li>phpIPAM Docker 容器已運行 (phpipam_phpipam-web_1)</li>
+                    <li>MariaDB 容器已運行 (phpipam_phpipam-mariadb_1)</li>
+                    <li>Cron 容器已運行 (phpipam_phpipam-cron_1)</li>
+                    <li>具有 root 權限</li>
+                </ul>
+
+                <h3>逐步安裝</h3>
+
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <div class="step-title">建立資料表</div>
+                        <p>在 MariaDB 中建立 Health Monitor 所需的資料表：</p>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code># 下載並執行 SQL
+curl -sL https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/database/health_check_tables.sql -o /tmp/health_check_tables.sql
+
+# 匯入到資料庫
+docker exec -i phpipam_phpipam-mariadb_1 mariadb -u phpipam -pmy_secret_phpipam_pass phpipam < /tmp/health_check_tables.sql</code></pre>
+                        </div>
+                        <p><strong>驗證：</strong></p>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code>docker exec phpipam_phpipam-mariadb_1 mariadb -u phpipam -pmy_secret_phpipam_pass phpipam -e "SHOW TABLES LIKE 'health_check%';"</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <div class="step-title">部署 Health Dashboard</div>
+                        <p>下載並部署 Dashboard 到 Web 容器：</p>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code># 建立目錄結構
+docker exec phpipam_phpipam-web_1 mkdir -p /phpipam/health_dashboard/api
+docker exec phpipam_phpipam-web_1 mkdir -p /phpipam/health_dashboard/config
+docker exec phpipam_phpipam-web_1 mkdir -p /phpipam/health_dashboard/includes
+
+# 下載檔案
+mkdir -p /tmp/health_deploy && cd /tmp/health_deploy
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/dashboard/index.html
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/api/api_stats.php
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/api/api_dhcp_config.php
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/includes/StatsCalculator.php
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/includes/HistoryCollector.php
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/config/dhcp_servers.json
+
+# 複製到容器
+docker cp index.html phpipam_phpipam-web_1:/phpipam/health_dashboard/
+docker cp api_stats.php phpipam_phpipam-web_1:/phpipam/health_dashboard/api/
+docker cp api_dhcp_config.php phpipam_phpipam-web_1:/phpipam/health_dashboard/api/
+docker cp StatsCalculator.php phpipam_phpipam-web_1:/phpipam/health_dashboard/includes/
+docker cp HistoryCollector.php phpipam_phpipam-web_1:/phpipam/health_dashboard/includes/
+docker cp dhcp_servers.json phpipam_phpipam-web_1:/phpipam/health_dashboard/config/</code></pre>
+                        </div>
+                        <p><strong>驗證：</strong></p>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code>curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=latest" | head -c 100</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <div class="step-title">設定 Cron 容器</div>
+                        <p>部署資料收集腳本到 Cron 容器：</p>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code># 建立目錄
+docker exec phpipam_phpipam-cron_1 mkdir -p /health_check/scripts
+docker exec phpipam_phpipam-cron_1 mkdir -p /health_check/includes
+docker exec phpipam_phpipam-cron_1 mkdir -p /health_check/config
+
+# 下載腳本
+curl -sL https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/scripts/collect_stats.php -o /tmp/collect_stats.php
+
+# 複製到 Cron 容器
+docker cp /tmp/collect_stats.php phpipam_phpipam-cron_1:/health_check/scripts/
+docker cp /tmp/health_deploy/StatsCalculator.php phpipam_phpipam-cron_1:/health_check/includes/
+docker cp /tmp/health_deploy/HistoryCollector.php phpipam_phpipam-cron_1:/health_check/includes/
+docker cp /tmp/health_deploy/dhcp_servers.json phpipam_phpipam-cron_1:/health_check/config/
+
+# 設定 Cron Job (每 5 分鐘執行)
+docker exec phpipam_phpipam-cron_1 sh -c 'echo "*/5 * * * * php /health_check/scripts/collect_stats.php >> /var/log/health_check.log 2>&1" >> /etc/crontabs/root'</code></pre>
+                        </div>
+                        <p><strong>驗證：</strong></p>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code>docker exec phpipam_phpipam-cron_1 php /health_check/scripts/collect_stats.php</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <div class="step-title">整合到 phpIPAM Tools 選單</div>
+                        <p>將 Health Monitor 嵌入到 phpIPAM 的 Tools 選單：</p>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code># 執行整合腳本
+curl -sL https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/scripts/setup_phpipam_integration.sh -o /tmp/setup.sh
+chmod +x /tmp/setup.sh
+/tmp/setup.sh</code></pre>
+                        </div>
+                        <p><strong>驗證：</strong></p>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code># 訪問 phpIPAM，確認 Tools → Custom Tools → Health-monitor 出現
+curl -sk "https://YOUR_SERVER/index.php?page=tools&section=health-monitor" | grep -o "Health Monitor"</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="success">
+                    <strong>🎉 安裝完成！</strong>
+                    <p>訪問：<code>https://YOUR_SERVER/health_dashboard/</code> 或
+                        <code>https://YOUR_SERVER/index.php?page=tools&section=health-monitor</code></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: 版本升級 -->
+        <div id="upgrade" class="tab-content">
+            <div class="section">
+                <h2>⬆️ 版本升級用戶指南</h2>
+                <p>當 phpIPAM 官方版本升級時，需要重新部署 Health Monitor。</p>
+
+                <div class="warning">
+                    <strong>⚠️ 重要提醒</strong>
+                    <p>phpIPAM 升級會覆蓋以下二次開發的檔案：</p>
+                    <ul>
+                        <li><code>/phpipam/app/tools/health-monitor/</code> - 會被覆蓋</li>
+                        <li><code>/phpipam/app/tools/tools-menu-config.php</code> - 會被覆蓋</li>
+                        <li><code>/phpipam/config.php</code> - 可能被覆蓋</li>
+                        <li><code>/phpipam/health_dashboard/</code> - 可能被覆蓋 (取決於 volume 設定)</li>
+                    </ul>
+                    <p>資料庫 <code>health_check_*</code> 表格不受影響。</p>
+                </div>
+
+                <h3>升級前備份</h3>
+                <div class="code-wrapper">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre><code># 備份所有 Health Monitor 相關檔案
+mkdir -p /opt/backup/health_monitor_$(date +%Y%m%d)
+docker cp phpipam_phpipam-web_1:/phpipam/config.php /opt/backup/health_monitor_$(date +%Y%m%d)/
+docker cp phpipam_phpipam-web_1:/phpipam/health_dashboard /opt/backup/health_monitor_$(date +%Y%m%d)/
+docker cp phpipam_phpipam-web_1:/phpipam/app/tools/health-monitor /opt/backup/health_monitor_$(date +%Y%m%d)/
+docker cp phpipam_phpipam-cron_1:/health_check /opt/backup/health_monitor_$(date +%Y%m%d)/</code></pre>
+                </div>
+
+                <h3>升級後恢復 (一鍵)</h3>
+                <div class="success">
+                    <strong>✨ 一鍵恢復</strong>
+                    <p>phpIPAM 升級完成後，執行以下命令恢復 Health Monitor：</p>
+                </div>
+                <div class="code-wrapper">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre><code># 一鍵恢復 Health Monitor
+curl -sL https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/scripts/full_deploy.sh | bash</code></pre>
+                </div>
+
+                <h3>升級後恢復 (逐步)</h3>
+
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <div class="step-title">恢復 Dashboard</div>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code>mkdir -p /tmp/health_update && cd /tmp/health_update
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/api/api_stats.php
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/dashboard/index.html
+
+docker exec phpipam_phpipam-web_1 mkdir -p /phpipam/health_dashboard/api
+docker cp api_stats.php phpipam_phpipam-web_1:/phpipam/health_dashboard/api/
+docker cp index.html phpipam_phpipam-web_1:/phpipam/health_dashboard/</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <div class="step-title">恢復 phpIPAM Tools 整合</div>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code>curl -sL https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/scripts/setup_phpipam_integration.sh | bash</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <div class="step-title">驗證功能</div>
+                        <div class="code-wrapper">
+                            <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                            <pre><code># 驗證 API
+curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=latest" | head -c 100
+
+# 驗證 Tools 整合
+curl -sk "https://YOUR_SERVER/index.php?page=tools&section=health-monitor" | grep -c "Health Monitor"
+
+# 驗證資料收集
+docker exec phpipam_phpipam-cron_1 php /health_check/scripts/collect_stats.php</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>永久解決方案：Docker Volume 持久化</h3>
+                <p>修改 <code>docker-compose.yml</code> 添加 volume 映射，讓 Health Dashboard 在升級後自動保留：</p>
+                <div class="code-wrapper">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre><code>services:
+  phpipam-web:
+    volumes:
+      - phpipam-health-dashboard:/phpipam/health_dashboard
+
+volumes:
+  phpipam-health-dashboard:</code></pre>
+                </div>
+                <div class="note">
+                    <strong>💡 注意</strong>
+                    <p>即使配置了 volume，<code>tools-menu-config.php</code> 和 <code>config.php</code> 仍需要在升級後重新執行
+                        <code>setup_phpipam_integration.sh</code> 腳本恢復。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: API 文件 -->
+        <div id="api" class="tab-content">
+            <div class="section">
+                <h2>📚 API 參考文件</h2>
+                <p>Health Monitor v2.1 提供以下 API 端點：</p>
+
+                <h3>Base URL</h3>
+                <div class="code-wrapper">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre><code>https://YOUR_SERVER/health_dashboard/api/</code></pre>
+                </div>
+
+                <!-- API: Latest -->
+                <div class="api-endpoint">
+                    <div class="api-header">
+                        <span class="badge get">GET</span>
+                        <span class="api-path">/api_stats.php?action=latest</span>
+                    </div>
+                    <p class="api-desc">取得最新系統狀態和 DHCP 伺服器狀態</p>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code>curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=latest"</code></pre>
+                    </div>
+                    <h4>回應範例</h4>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code>{
+  "success": true,
+  "data": {
+    "system": {
+      "cpu_usage_percent": "2.29",
+      "memory_usage_percent": "16.79",
+      "disk_usage_percent": "64.57",
+      "recorded_at": "2025-12-23 13:15:00"
+    },
+    "dhcp": [
+      {"dhcp_ip": "172.16.5.196", "dhcp_hostname": "DHCP-CH-HQ2", "reachable": 1, "latency_ms": "0.45"}
+    ]
+  },
+  "generated_at": "2025-12-23T13:20:00+08:00"
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- API: System History -->
+                <div class="api-endpoint">
+                    <div class="api-header">
+                        <span class="badge get">GET</span>
+                        <span class="api-path">/api_stats.php?action=system_history</span>
+                    </div>
+                    <p class="api-desc">取得系統資源歷史資料 (CPU/Memory/Disk)</p>
+
+                    <h4>參數</h4>
+                    <table>
+                        <tr>
+                            <th>參數</th>
+                            <th>類型</th>
+                            <th>說明</th>
+                            <th>預設值</th>
+                        </tr>
+                        <tr>
+                            <td><code>hours</code></td>
+                            <td>int</td>
+                            <td>固定時段 (1/3/6/8/12/24)</td>
+                            <td>24</td>
+                        </tr>
+                        <tr>
+                            <td><code>start_time</code></td>
+                            <td>string</td>
+                            <td>自訂開始時間 (Y-m-d H:i)</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><code>end_time</code></td>
+                            <td>string</td>
+                            <td>自訂結束時間 (Y-m-d H:i)</td>
+                            <td>-</td>
+                        </tr>
+                    </table>
+
+                    <h4>固定時段查詢</h4>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code>curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=system_history&hours=3"</code></pre>
+                    </div>
+
+                    <h4>自訂時間範圍查詢</h4>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code>curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=system_history&start_time=2025-12-22%2000:00&end_time=2025-12-22%2005:00"</code></pre>
+                    </div>
+                </div>
+
+                <!-- API: DHCP History -->
+                <div class="api-endpoint">
+                    <div class="api-header">
+                        <span class="badge get">GET</span>
+                        <span class="api-path">/api_stats.php?action=dhcp_history</span>
+                    </div>
+                    <p class="api-desc">取得 DHCP 伺服器延遲歷史資料</p>
+
+                    <h4>參數 (與 system_history 相同)</h4>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code># 固定時段
+curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=dhcp_history&hours=6"
+
+# 自訂範圍
+curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=dhcp_history&start_time=2025-12-22%2008:00&end_time=2025-12-22%2012:00"</code></pre>
+                    </div>
+                </div>
+
+                <!-- API: Stats 24h -->
+                <div class="api-endpoint">
+                    <div class="api-header">
+                        <span class="badge get">GET</span>
+                        <span class="api-path">/api_stats.php?action=stats</span>
+                    </div>
+                    <p class="api-desc">取得 24 小時統計摘要 (avg/min/max)</p>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code>curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=stats"</code></pre>
+                    </div>
+                </div>
+
+                <h3>DHCP 配置 API</h3>
+
+                <!-- API: Get DHCP Servers -->
+                <div class="api-endpoint">
+                    <div class="api-header">
+                        <span class="badge get">GET</span>
+                        <span class="api-path">/api_dhcp_config.php</span>
+                    </div>
+                    <p class="api-desc">取得所有 DHCP 伺服器配置</p>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code>curl -sk "https://YOUR_SERVER/health_dashboard/api/api_dhcp_config.php"</code></pre>
+                    </div>
+                </div>
+
+                <!-- API: Add DHCP Server -->
+                <div class="api-endpoint">
+                    <div class="api-header">
+                        <span class="badge post">POST</span>
+                        <span class="api-path">/api_dhcp_config.php</span>
+                    </div>
+                    <p class="api-desc">新增 DHCP 伺服器</p>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code>curl -sk -X POST -H "Content-Type: application/json" \
+  -d '{"ip":"10.1.1.1","hostname":"NEW-DHCP","location":"新據點"}' \
+  "https://YOUR_SERVER/health_dashboard/api/api_dhcp_config.php"</code></pre>
+                    </div>
+                </div>
+
+                <!-- API: Update DHCP Server -->
+                <div class="api-endpoint">
+                    <div class="api-header">
+                        <span class="badge put">PUT</span>
+                        <span class="api-path">/api_dhcp_config.php?ip={IP}</span>
+                    </div>
+                    <p class="api-desc">修改 DHCP 伺服器</p>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code>curl -sk -X PUT -H "Content-Type: application/json" \
+  -d '{"hostname":"Updated-Name","location":"新位置"}' \
+  "https://YOUR_SERVER/health_dashboard/api/api_dhcp_config.php?ip=10.1.1.1"</code></pre>
+                    </div>
+                </div>
+
+                <!-- API: Delete DHCP Server -->
+                <div class="api-endpoint">
+                    <div class="api-header">
+                        <span class="badge delete">DELETE</span>
+                        <span class="api-path">/api_dhcp_config.php?ip={IP}</span>
+                    </div>
+                    <p class="api-desc">刪除 DHCP 伺服器</p>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                        <pre><code>curl -sk -X DELETE "https://YOUR_SERVER/health_dashboard/api/api_dhcp_config.php?ip=10.1.1.1"</code></pre>
+                    </div>
+                </div>
+
+                <h3>功能驗證命令</h3>
+                <div class="code-wrapper">
+                    <button class="copy-btn" onclick="copyCode(this)">複製</button>
+                    <pre><code># 1. 驗證 API 連線
+curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=latest" | jq .success
+
+# 2. 驗證時段查詢
+curl -sk "https://YOUR_SERVER/health_dashboard/api/api_stats.php?action=system_history&hours=1" | jq '.data | length'
+
+# 3. 驗證 DHCP 配置
+curl -sk "https://YOUR_SERVER/health_dashboard/api/api_dhcp_config.php" | jq '.[].hostname'
+
+# 4. 驗證資料收集
+docker exec phpipam_phpipam-cron_1 php /health_check/scripts/collect_stats.php
+
+# 5. 驗證 phpIPAM Tools 整合
+docker exec phpipam_phpipam-web_1 ls /phpipam/app/tools/health-monitor/</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>📊 phpIPAM Health Monitor v2.1</p>
+            <p>文件更新時間：2025-12-23 13:34</p>
+            <p>Jason Cheng | IT Infrastructure</p>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Remove active from all tabs and contents
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // Add active to selected
+            document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function copyCode(btn) {
+            const code = btn.parentElement.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '已複製!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '複製';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>
