@@ -189,3 +189,81 @@ sudo tar -xzf backup_YYYYMMDD_HHMMSS.tar.gz
 ---
 
 **部署完成後請通知系統管理員測試！**
+
+---
+
+## Docker 環境部署 (v2.1)
+
+### 快速部署
+
+使用持久化腳本一鍵部署 Health Dashboard 和 phpIPAM 整合：
+
+```bash
+# 下載並執行設定腳本
+curl -sL https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/scripts/setup_phpipam_integration.sh -o /tmp/setup.sh
+chmod +x /tmp/setup.sh
+/tmp/setup.sh
+```
+
+### 手動部署步驟
+
+#### 1. 部署 Health Dashboard
+
+```bash
+# 建立暫存目錄
+mkdir -p /tmp/health_update && cd /tmp/health_update
+
+# 下載更新的檔案
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/api/api_stats.php
+curl -sLO https://raw.githubusercontent.com/nox913106/DEV-phpipam/master/dashboard/index.html
+
+# 複製到 Web 容器
+docker cp api_stats.php phpipam_phpipam-web_1:/phpipam/health_dashboard/api/
+docker cp index.html phpipam_phpipam-web_1:/phpipam/health_dashboard/
+```
+
+#### 2. 整合到 phpIPAM Tools 選單
+
+```bash
+# 建立工具目錄
+docker exec phpipam_phpipam-web_1 mkdir -p /phpipam/app/tools/health-monitor
+
+# 建立 index.php
+docker exec phpipam_phpipam-web_1 sh -c 'cat > /phpipam/app/tools/health-monitor/index.php << '\''EOF'\''
+<?php
+$User->check_user_session();
+?>
+<h4><i class="fa fa-heartbeat"></i> Health Monitor Dashboard</h4>
+<hr>
+<div style="width:100%; height:calc(100vh - 180px); min-height:600px;">
+    <iframe src="/health_dashboard/" style="width:100%; height:100%; border:none;"></iframe>
+</div>
+EOF'
+
+# 添加到 config.php
+docker exec phpipam_phpipam-web_1 sh -c 'echo "\$private_subpages = [\"health-monitor\"];" >> /phpipam/config.php'
+
+# 添加到 tools_menu_items
+docker exec phpipam_phpipam-web_1 sed -i '/"vaults".*=>/a\                                                "health-monitor"       => _("health-monitor"),' /phpipam/app/tools/tools-menu-config.php
+
+# 驗證語法
+docker exec phpipam_phpipam-web_1 php -l /phpipam/app/tools/tools-menu-config.php
+```
+
+#### 3. 驗證
+
+```bash
+# 測試 API
+curl -sk "https://ipam-tw.pouchen.com/health_dashboard/api/api_stats.php?action=latest"
+
+# 訪問 Dashboard
+# https://ipam-tw.pouchen.com/index.php?page=tools&section=health-monitor
+```
+
+### 容器重啟後恢復
+
+```bash
+# 執行設定腳本恢復所有設定
+./scripts/setup_phpipam_integration.sh
+```
+

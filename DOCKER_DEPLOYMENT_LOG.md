@@ -227,3 +227,25 @@ curl -sk "https://ipam-tw.pouchen.com/health_dashboard/api/api_stats.php?action=
 
 **更新時間**: 2025-12-23 11:50
 
+---
+
+### phpIPAM Tools 整合 (2025-12-23 13:20)
+
+#### 整合步驟
+1. 建立工具目錄 `/phpipam/app/tools/health-monitor/`
+2. 建立 index.php (iframe 嵌入 Dashboard)
+3. 添加 `$private_subpages = ["health-monitor"];` 到 config.php
+4. 添加 `"health-monitor"` 到 tools-menu-config.php 的 $tools_menu_items
+
+#### 存取方式
+- phpIPAM 選單：**Tools → Custom Tools → Health-monitor**
+- 直接 URL：`https://ipam-tw.pouchen.com/index.php?page=tools&section=health-monitor`
+
+#### 持久化腳本
+```bash
+# 容器重啟後執行恢復設定
+./scripts/setup_phpipam_integration.sh
+```
+
+**整合時間**: 2025-12-23 13:20
+
