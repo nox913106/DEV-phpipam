@@ -169,7 +169,10 @@
             padding: 1rem;
             overflow: hidden;
             cursor: grab;
-            min-height: 300px;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .mermaid-container:active {
@@ -177,8 +180,7 @@
         }
 
         .mermaid {
-            display: flex;
-            justify-content: center;
+            background: transparent !important;
         }
 
         .badge {
@@ -318,32 +320,19 @@
     <div class="card">
         <h2 data-i18n="networkArch">🌐 網路架構</h2>
         <div class="mermaid-container" id="mermaid-container">
-            <div class="mermaid" id="mermaid-diagram">
-                graph TB
-                subgraph External["🌐 External Access"]
-                NGINX["Nginx:443<br />SSL Termination"]
-                end
-
-                subgraph Network["my_custom_network (192.168.255.0/24)"]
-                WEB["phpipam-web<br />:80 internal"]
-                CRON["phpipam-cron<br />DHCP Monitor"]
-                DB["phpipam-mariadb<br />:3306"]
-                end
-
-                NGINX --> WEB
-                NGINX --> CRON
-                WEB --> DB
+            <div class="mermaid">
+                flowchart TB
+                NGINX[Nginx:443 SSL] --> WEB[phpipam-web :80]
+                NGINX --> CRON[phpipam-cron DHCP]
+                WEB --> DB[phpipam-mariadb :3306]
                 CRON --> DB
-
                 style NGINX fill:#7c3aed,color:#fff
                 style WEB fill:#22c55e,color:#fff
                 style CRON fill:#f97316,color:#fff
                 style DB fill:#dc2626,color:#fff
             </div>
         </div>
-        <p style="text-align: center; color: var(--text2); font-size: 0.85rem; margin-top: 0.5rem;">
-            🖱️ 滾輪縮放 | 左鍵拖移
-        </p>
+        <p style="text-align: center; color: var(--text2); font-size: 0.85rem; margin-top: 0.5rem;">🖱️ 滾輪縮放 | 左鍵拖移</p>
     </div>
 
     <div class="card">
@@ -383,20 +372,17 @@
 
     <div class="card">
         <h2 data-i18n="deploySpec">🔧 開發部署規範</h2>
-
         <h3 data-i18n="healthCheck">Health Check 模組</h3>
         <ul>
             <li>檔案放置於 <code>/opt/health_check/</code></li>
             <li>由 <code>phpipam-cron</code> 容器執行</li>
             <li>Volume mount：<code>/opt/health_check:/health_check</code></li>
         </ul>
-
         <h3 data-i18n="dhcpDaemon">DHCP Monitor Daemon</h3>
         <ul>
             <li>Log 路徑：<code>/var/log/dhcp_monitor.log</code></li>
             <li>設定檔：<code>/health_check/config/dhcp_servers.json</code></li>
         </ul>
-
         <h3 data-i18n="dbConn">資料庫連線</h3>
         <ul>
             <li>Host: <code>phpipam-mariadb</code> (容器內) / <code>localhost:3306</code> (主機)</li>
@@ -437,107 +423,28 @@
     </footer>
 
     <script>
-        // Initialize Mermaid
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'dark',
-            flowchart: { curve: 'basis' }
-        });
-
-        // Initialize Panzoom after Mermaid renders
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', flowchart: { curve: 'basis' } });
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const container = document.getElementById('mermaid-container');
                 const svg = container.querySelector('svg');
-                if (svg) {
-                    const pz = panzoom(svg, {
-                        maxZoom: 3,
-                        minZoom: 0.5,
-                        bounds: true,
-                        boundsPadding: 0.1
-                    });
-                }
-            }, 500);
+                if (svg) panzoom(svg, { maxZoom: 3, minZoom: 0.5, bounds: true, boundsPadding: 0.1 });
+            }, 1000);
         });
 
         const translations = {
-            'zh-TW': {
-                title: '📋 phpIPAM 專案規範', subtitle: '生產環境系統架構文件',
-                serverInfo: '🖥️ 伺服器資訊', dirStructure: '📁 目錄結構',
-                containers: '🐳 Docker 容器', desc: '說明', webUI: 'Web 介面',
-                cronDHCP: '排程任務 + DHCP 監控', database: '資料庫', reverseProxy: '反向代理',
-                networkArch: '🌐 網路架構', volumes: '💾 Volume Mounts',
-                dbData: '資料庫資料', logoFiles: 'Logo 檔案', caCert: 'CA 憑證',
-                healthModule: 'Health Check 模組', deploySpec: '🔧 開發部署規範',
-                healthCheck: 'Health Check 模組', dhcpDaemon: 'DHCP Monitor Daemon',
-                dbConn: '資料庫連線', repos: '📁 相關 GitHub 專案', project: '專案'
-            },
-            'zh-CN': {
-                title: '📋 phpIPAM 项目规范', subtitle: '生产环境系统架构文件',
-                serverInfo: '🖥️ 服务器信息', dirStructure: '📁 目录结构',
-                containers: '🐳 Docker 容器', desc: '说明', webUI: 'Web 界面',
-                cronDHCP: '排程任务 + DHCP 监控', database: '数据库', reverseProxy: '反向代理',
-                networkArch: '🌐 网络架构', volumes: '💾 Volume Mounts',
-                dbData: '数据库数据', logoFiles: 'Logo 文件', caCert: 'CA 证书',
-                healthModule: 'Health Check 模块', deploySpec: '🔧 开发部署规范',
-                healthCheck: 'Health Check 模块', dhcpDaemon: 'DHCP Monitor Daemon',
-                dbConn: '数据库连接', repos: '📁 相关 GitHub 项目', project: '项目'
-            },
-            'en': {
-                title: '📋 phpIPAM Project Specification', subtitle: 'Production System Architecture',
-                serverInfo: '🖥️ Server Info', dirStructure: '📁 Directory Structure',
-                containers: '🐳 Docker Containers', desc: 'Description', webUI: 'Web Interface',
-                cronDHCP: 'Cron Tasks + DHCP Monitor', database: 'Database', reverseProxy: 'Reverse Proxy',
-                networkArch: '🌐 Network Architecture', volumes: '💾 Volume Mounts',
-                dbData: 'Database Data', logoFiles: 'Logo Files', caCert: 'CA Certificate',
-                healthModule: 'Health Check Module', deploySpec: '🔧 Deployment Specification',
-                healthCheck: 'Health Check Module', dhcpDaemon: 'DHCP Monitor Daemon',
-                dbConn: 'Database Connection', repos: '📁 Related GitHub Repos', project: 'Project'
-            }
+            'zh-TW': { title: '📋 phpIPAM 專案規範', subtitle: '生產環境系統架構文件', serverInfo: '🖥️ 伺服器資訊', dirStructure: '📁 目錄結構', containers: '🐳 Docker 容器', desc: '說明', webUI: 'Web 介面', cronDHCP: '排程任務 + DHCP 監控', database: '資料庫', reverseProxy: '反向代理', networkArch: '🌐 網路架構', volumes: '💾 Volume Mounts', dbData: '資料庫資料', logoFiles: 'Logo 檔案', caCert: 'CA 憑證', healthModule: 'Health Check 模組', deploySpec: '🔧 開發部署規範', healthCheck: 'Health Check 模組', dhcpDaemon: 'DHCP Monitor Daemon', dbConn: '資料庫連線', repos: '📁 相關 GitHub 專案', project: '專案' },
+            'zh-CN': { title: '📋 phpIPAM 项目规范', subtitle: '生产环境系统架构文件', serverInfo: '🖥️ 服务器信息', dirStructure: '📁 目录结构', containers: '🐳 Docker 容器', desc: '说明', webUI: 'Web 界面', cronDHCP: '排程任务 + DHCP 监控', database: '数据库', reverseProxy: '反向代理', networkArch: '🌐 网络架构', volumes: '💾 Volume Mounts', dbData: '数据库数据', logoFiles: 'Logo 文件', caCert: 'CA 证书', healthModule: 'Health Check 模块', deploySpec: '🔧 开发部署规范', healthCheck: 'Health Check 模块', dhcpDaemon: 'DHCP Monitor Daemon', dbConn: '数据库连接', repos: '📁 相关 GitHub 项目', project: '项目' },
+            'en': { title: '📋 phpIPAM Project Specification', subtitle: 'Production System Architecture', serverInfo: '🖥️ Server Info', dirStructure: '📁 Directory Structure', containers: '🐳 Docker Containers', desc: 'Description', webUI: 'Web Interface', cronDHCP: 'Cron Tasks + DHCP Monitor', database: 'Database', reverseProxy: 'Reverse Proxy', networkArch: '🌐 Network Architecture', volumes: '💾 Volume Mounts', dbData: 'Database Data', logoFiles: 'Logo Files', caCert: 'CA Certificate', healthModule: 'Health Check Module', deploySpec: '🔧 Deployment Specification', healthCheck: 'Health Check Module', dhcpDaemon: 'DHCP Monitor Daemon', dbConn: 'Database Connection', repos: '📁 Related GitHub Repos', project: 'Project' }
         };
-
         let currentLang = localStorage.getItem('lang') || 'zh-TW';
-
-        function setLang(lang) {
-            currentLang = lang;
-            localStorage.setItem('lang', lang);
-            document.querySelectorAll('[data-lang]').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.dataset.i18n;
-                if (translations[lang] && translations[lang][key]) el.textContent = translations[lang][key];
-            });
-        }
-
-        function toggleTheme() {
-            const root = document.documentElement;
-            const isDark = root.classList.toggle('light');
-            document.getElementById('themeBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
-        }
-
-        function copyCode(btn) {
-            const code = btn.nextElementSibling.textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                btn.textContent = '✅ Copied!';
-                setTimeout(() => btn.textContent = '📋 Copy', 2000);
-            });
-        }
-
+        function setLang(lang) { currentLang = lang; localStorage.setItem('lang', lang); document.querySelectorAll('[data-lang]').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang)); document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.dataset.i18n; if (translations[lang] && translations[lang][key]) el.textContent = translations[lang][key]; }); }
+        function toggleTheme() { const root = document.documentElement; const isDark = root.classList.toggle('light'); document.getElementById('themeBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark'; localStorage.setItem('theme', isDark ? 'light' : 'dark'); }
+        function copyCode(btn) { const code = btn.nextElementSibling.textContent; navigator.clipboard.writeText(code).then(() => { btn.textContent = '✅ Copied!'; setTimeout(() => btn.textContent = '📋 Copy', 2000); }); }
         document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('theme') === 'light') {
-                document.documentElement.classList.add('light');
-                document.getElementById('themeBtn').textContent = '☀️ Light';
-            }
+            if (localStorage.getItem('theme') === 'light') { document.documentElement.classList.add('light'); document.getElementById('themeBtn').textContent = '☀️ Light'; }
             setLang(currentLang);
-
-            // Add copy buttons to pre elements
-            document.querySelectorAll('pre').forEach(pre => {
-                const btn = document.createElement('button');
-                btn.className = 'copy-btn';
-                btn.textContent = '📋 Copy';
-                btn.onclick = function () { copyCode(this); };
-                pre.insertBefore(btn, pre.firstChild);
-            });
+            document.querySelectorAll('pre:not(.mermaid)').forEach(pre => { const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.textContent = '📋 Copy'; btn.onclick = function () { copyCode(this); }; pre.insertBefore(btn, pre.firstChild); });
         });
     </script>
 </body>
