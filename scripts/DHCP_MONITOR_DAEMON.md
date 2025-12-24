@@ -7,6 +7,7 @@
 ### 主要特點
 
 - ⏱️ 每 5 秒監控一次（可調整 `MONITOR_INTERVAL` 常數）
+- 🕐 記錄時間對齊到 :00/:05/:10... 模式
 - 🔄 自動重新載入 DHCP 伺服器設定檔
 - 🗑️ 自動清理 7 天以上的舊資料
 - 📊 與現有 Health Dashboard 完全相容
@@ -28,38 +29,32 @@ nohup php /health_check/scripts/dhcp_monitor_daemon.php > /var/log/dhcp_monitor.
 tail -f /var/log/dhcp_monitor.log
 ```
 
-### 方式二：使用啟動腳本
+### 方式二：容器自動啟動（推薦）
 
-```bash
-# 複製腳本到容器
-docker cp start_dhcp_monitor.sh phpipam_phpipam-cron_1:/health_check/scripts/
-docker cp dhcp_monitor_daemon.php phpipam_phpipam-cron_1:/health_check/scripts/
-
-# 進入容器並設定權限
-docker exec -it phpipam_phpipam-cron_1 sh
-chmod +x /health_check/scripts/start_dhcp_monitor.sh
-
-# 啟動
-/health_check/scripts/start_dhcp_monitor.sh start
-
-# 查看狀態
-/health_check/scripts/start_dhcp_monitor.sh status
-
-# 停止
-/health_check/scripts/start_dhcp_monitor.sh stop
-```
-
-### 方式三：整合到容器啟動流程
-
-修改 Docker Compose 或 entrypoint：
+修改 `/opt/phpipam/docker-compose.yml`，在 phpipam-cron 服務加入：
 
 ```yaml
-# docker-compose.yml
-services:
-  phpipam-cron:
-    command: >
-      sh -c "php /health_check/scripts/dhcp_monitor_daemon.php &
-             crond -f"
+phpipam-cron:
+  image: phpipam/phpipam-cron:v1.7.4
+  # ... 其他設定不變 ...
+  command: >
+    sh -c "
+      if [ -f /health_check/scripts/dhcp_monitor_daemon.php ]; then
+        nohup php /health_check/scripts/dhcp_monitor_daemon.php >> /var/log/dhcp_monitor.log 2>&1 &
+      fi
+      exec /sbin/tini -- /bin/sh -c 'crond -f'
+    "
+```
+
+或使用包裝腳本：
+
+```bash
+# 複製包裝腳本到容器
+docker cp entrypoint_wrapper.sh phpipam_phpipam-cron_1:/health_check/scripts/
+docker exec phpipam_phpipam-cron_1 chmod +x /health_check/scripts/entrypoint_wrapper.sh
+
+# 修改 docker-compose.yml 使用包裝腳本
+# entrypoint: ["/health_check/scripts/entrypoint_wrapper.sh"]
 ```
 
 ---
@@ -96,14 +91,14 @@ docker exec phpipam_phpipam-cron_1 tail -50 /var/log/dhcp_monitor.log
 ### 查看最新資料
 
 ```bash
-docker exec phpipam_phpipam-mariadb_1 mysql -u phpipam -p phpipam -e \
+docker exec phpipam_phpipam-mariadb_1 mariadb -u phpipam -p phpipam -e \
   "SELECT * FROM health_check_dhcp_history ORDER BY recorded_at DESC LIMIT 10;"
 ```
 
 ### 查看資料量
 
 ```bash
-docker exec phpipam_phpipam-mariadb_1 mysql -u phpipam -p phpipam -e \
+docker exec phpipam_phpipam-mariadb_1 mariadb -u phpipam -p phpipam -e \
   "SELECT COUNT(*) as total, 
           MIN(recorded_at) as oldest, 
           MAX(recorded_at) as newest 
@@ -112,14 +107,15 @@ docker exec phpipam_phpipam-mariadb_1 mysql -u phpipam -p phpipam -e \
 
 ---
 
-## 回滾
-
-如需恢復原本每 5 分鐘的監控方式：
+## 重啟 Daemon
 
 ```bash
-# 停止 daemon
-docker exec phpipam_phpipam-cron_1 /health_check/scripts/start_dhcp_monitor.sh stop
+# 停止
+docker exec phpipam_phpipam-cron_1 pkill -9 -f dhcp_monitor
 
-# 確認原本的 cron job 仍在運行
-docker exec phpipam_phpipam-cron_1 cat /etc/crontabs/root
+# 啟動
+docker exec phpipam_phpipam-cron_1 sh -c "nohup php /health_check/scripts/dhcp_monitor_daemon.php > /var/log/dhcp_monitor.log 2>&1 &"
+
+# 確認
+docker exec phpipam_phpipam-cron_1 ps aux | grep dhcp_monitor
 ```

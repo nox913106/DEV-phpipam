@@ -58,11 +58,14 @@ dev-phpipam/
 │   ├── HistoryCollector.php    # 歷史資料收集器
 │   └── StatsCalculator.php     # 統計計算器
 ├── scripts/
-│   └── collect_stats.php       # Cron 排程腳本
+│   ├── collect_stats.php           # Cron 排程腳本（系統資源）
+│   ├── dhcp_monitor_daemon.php     # DHCP 監控 Daemon（每 5 秒）
+│   ├── start_dhcp_monitor.sh       # Daemon 啟動腳本
+│   └── entrypoint_wrapper.sh       # 容器啟動包裝腳本
 ├── config/
-│   └── dhcp_servers.json       # DHCP 伺服器配置
+│   └── dhcp_servers.json           # DHCP 伺服器配置
 ├── database/
-│   └── health_check_tables.sql # 資料庫結構
+│   └── health_check_tables.sql     # 資料庫結構
 ├── docker/                     # Docker 一鍵部署包
 │   ├── docker-compose.yml
 │   ├── .env.example
@@ -166,6 +169,13 @@ docker exec phpipam-mariadb mysql -u phpipam -p phpipam \
 - ✅ 記錄 API 呼叫日誌
 
 ## 📝 版本
+
+- **v2.2** (2025-12-24)
+  - 🚀 DHCP 監控間隔從 5 分鐘優化為 **5 秒**
+  - 新增 `dhcp_monitor_daemon.php` 獨立監控服務
+  - 記錄時間對齊到 :00/:05/:10... 模式
+  - 新增容器自動啟動包裝腳本
+  - 自動清理 7 天以上歷史資料
 
 - **v2.1** (2025-12-23)
   - 新增彈性時段查詢功能
