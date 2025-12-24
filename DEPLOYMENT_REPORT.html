@@ -181,9 +181,15 @@
                     <td>stwphpipam-p (ipam-tw.pouchen.com)</td>
                 </tr>
                 <tr>
-                    <td>Dashboard URL</td>
+                    <td>Dashboard URL (Standalone)</td>
                     <td><a
                             href="https://ipam-tw.pouchen.com/health_dashboard/">https://ipam-tw.pouchen.com/health_dashboard/</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Dashboard URL (Embedded)</td>
+                    <td><a
+                            href="https://ipam-tw.pouchen.com/index.php?page=tools&section=health-monitor">https://ipam-tw.pouchen.com/index.php?page=tools&amp;section=health-monitor</a>
                     </td>
                 </tr>
             </tbody>
@@ -312,6 +318,36 @@ GET /health_dashboard/api/api_stats.php?action=dhcp_history&amp;hours=3
 # Get DHCP config
 GET /health_dashboard/api/api_dhcp_config.php?action=list
         </pre>
+    </div>
+
+    <div class="card">
+        <h2>Change Log</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Version</th>
+                    <th>Changes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2025-12-24</td>
+                    <td><span class="badge badge-success">v2.2.1</span></td>
+                    <td>DHCP monitoring interval optimized from 5 min to 5 sec, latency parsing bug fixed</td>
+                </tr>
+                <tr>
+                    <td>2025-12-23</td>
+                    <td><span class="badge badge-info">v2.1</span></td>
+                    <td>Dashboard embedded into phpIPAM (Tools > Health Monitor)</td>
+                </tr>
+                <tr>
+                    <td>2025-12-19</td>
+                    <td><span class="badge badge-info">v2.0</span></td>
+                    <td>Initial deployment with 24h history, DHCP management UI, multi-language support</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <footer>
