@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>phpIPAM 專案規範</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --bg2: #1e293b;
+            --card: #334155;
+            --text: #f1f5f9;
+            --text2: #94a3b8;
+            --green: #22c55e;
+            --blue: #3b82f6;
+            --orange: #f97316;
+            --purple: #a855f7;
+        }
+
+        :root.light {
+            --bg: #f8fafc;
+            --bg2: #ffffff;
+            --card: #e2e8f0;
+            --text: #1e293b;
+            --text2: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg2);
+            border: 1px solid var(--card);
+            border-radius: 0.5rem;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: var(--card);
+        }
+
+        .control-btn.active {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff;
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        header p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .card {
+            background: var(--bg2);
+            border: 1px solid var(--card);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card h2 {
+            color: var(--blue);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--card);
+        }
+
+        .card h3 {
+            color: var(--green);
+            font-size: 1.1rem;
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th,
+        td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--card);
+        }
+
+        th {
+            background: var(--card);
+            color: var(--blue);
+        }
+
+        pre {
+            background: #0d1117;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        code {
+            font-family: 'Consolas', monospace;
+            color: #e6edf3;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--card);
+            border: none;
+            border-radius: 0.25rem;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .copy-btn:hover {
+            background: var(--blue);
+        }
+
+        .diagram {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            font-family: 'Consolas', monospace;
+            white-space: pre;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--green);
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--blue);
+        }
+
+        a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text2);
+            border-top: 1px solid var(--card);
+            margin-top: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="controls">
+        <button class="control-btn" onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
+        <button class="control-btn active" onclick="setLang('zh-TW')" data-lang="zh-TW">繁體中文</button>
+        <button class="control-btn" onclick="setLang('zh-CN')" data-lang="zh-CN">简体中文</button>
+        <button class="control-btn" onclick="setLang('en')" data-lang="en">English</button>
+    </div>
+
+    <header>
+        <h1 data-i18n="title">📋 phpIPAM 專案規範</h1>
+        <p data-i18n="subtitle">生產環境系統架構文件</p>
+    </header>
+
+    <div class="card">
+        <h2 data-i18n="serverInfo">🖥️ 伺服器資訊</h2>
+        <table>
+            <tr>
+                <td>Hostname</td>
+                <td><code>stwphpipam-p</code></td>
+            </tr>
+            <tr>
+                <td>phpIPAM Version</td>
+                <td><span class="badge badge-success">v1.7.4</span></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2 data-i18n="dirStructure">📁 目錄結構</h2>
+        <pre><code>/opt/
+├── phpipam/                    # phpIPAM Docker Compose
+│   └── docker-compose.yml
+├── Nginx/                      # Nginx 反向代理
+│   ├── docker-compose.yml
+│   ├── default.conf
+│   └── ssl/
+├── Socat/                      # MariaDB 代理
+│   └── docker-compose.yml
+├── health_check/               # Health Check 模組
+│   ├── config/
+│   │   └── dhcp_servers.json
+│   └── scripts/
+│       ├── collect_stats.php
+│       └── dhcp_monitor_daemon.php
+├── backup/                     # 備份目錄
+└── phpipam_backup.sh           # 備份腳本</code></pre>
+    </div>
+
+    <div class="card">
+        <h2 data-i18n="containers">🐳 Docker 容器</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Container</th>
+                    <th>Image</th>
+                    <th>Port</th>
+                    <th data-i18n="desc">說明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>phpipam_phpipam-web_1</code></td>
+                    <td>phpipam/phpipam-www:v1.7.4</td>
+                    <td>80 (internal)</td>
+                    <td data-i18n="webUI">Web 介面</td>
+                </tr>
+                <tr>
+                    <td><code>phpipam_phpipam-cron_1</code></td>
+                    <td>phpipam/phpipam-cron:v1.7.4</td>
+                    <td>-</td>
+                    <td data-i18n="cronDHCP">排程任務 + DHCP 監控</td>
+                </tr>
+                <tr>
+                    <td><code>phpipam_phpipam-mariadb_1</code></td>
+                    <td>mariadb:latest</td>
+                    <td>3306</td>
+                    <td data-i18n="database">資料庫</td>
+                </tr>
+                <tr>
+                    <td><code>nginx_nginx_1</code></td>
+                    <td>nginx:latest</td>
+                    <td>80, 443</td>
+                    <td data-i18n="reverseProxy">反向代理</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2 data-i18n="networkArch">🌐 網路架構</h2>
+        <div class="diagram"> ┌─────────────────┐
+            │ Nginx:443 │
+            │ (SSL Termination)│
+            └────────┬────────┘
+            │
+            ┌──────────────┴──────────────┐
+            │ my_custom_network │
+            │ 192.168.255.0/24 │
+            │ │
+            ┌─────────┴─────────┐ ┌─────────────┴─────────────┐
+            │ phpipam-web │ │ phpipam-cron │
+            │ (:80 internal) │ │ (DHCP Monitor Daemon) │
+            └─────────┬─────────┘ └─────────────┬─────────────┘
+            │ │
+            └──────────────┬──────────────┘
+            │
+            ┌─────────┴─────────┐
+            │ phpipam-mariadb │
+            │ (:3306) │
+            └───────────────────┘</div>
+    </div>
+
+    <div class="card">
+        <h2 data-i18n="volumes">💾 Volume Mounts</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Volume</th>
+                    <th>Mount Path</th>
+                    <th data-i18n="desc">說明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>phpipam-db-data</code></td>
+                    <td>/var/lib/mysql</td>
+                    <td data-i18n="dbData">資料庫資料</td>
+                </tr>
+                <tr>
+                    <td><code>phpipam-logo</code></td>
+                    <td>/phpipam/css/images/logo</td>
+                    <td data-i18n="logoFiles">Logo 檔案</td>
+                </tr>
+                <tr>
+                    <td><code>phpipam-ca</code></td>
+                    <td>/usr/local/share/ca-certificates</td>
+                    <td data-i18n="caCert">CA 憑證</td>
+                </tr>
+                <tr>
+                    <td><code>/opt/health_check</code></td>
+                    <td>/health_check</td>
+                    <td data-i18n="healthModule">Health Check 模組</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2 data-i18n="deploySpec">🔧 開發部署規範</h2>
+
+        <h3 data-i18n="healthCheck">Health Check 模組</h3>
+        <ul>
+            <li data-i18n="deploy1">檔案放置於 <code>/opt/health_check/</code></li>
+            <li data-i18n="deploy2">由 <code>phpipam-cron</code> 容器執行</li>
+            <li data-i18n="deploy3">Volume mount：<code>/opt/health_check:/health_check</code></li>
+        </ul>
+
+        <h3 data-i18n="dhcpDaemon">DHCP Monitor Daemon</h3>
+        <ul>
+            <li data-i18n="daemon1">Log 路徑：<code>/var/log/dhcp_monitor.log</code></li>
+            <li data-i18n="daemon2">設定檔：<code>/health_check/config/dhcp_servers.json</code></li>
+        </ul>
+
+        <h3 data-i18n="dbConn">資料庫連線</h3>
+        <ul>
+            <li>Host: <code>phpipam-mariadb</code> (容器內) / <code>localhost:3306</code> (主機)</li>
+            <li>Database: <code>phpipam</code></li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2 data-i18n="repos">📁 相關 GitHub 專案</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th data-i18n="project">專案</th>
+                    <th>Repository</th>
+                    <th data-i18n="desc">說明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>phpIPAM Health Monitor</td>
+                    <td><a href="https://github.com/nox913106/DEV-phpipam-health-monitor"
+                            target="_blank">DEV-phpipam-health-monitor</a></td>
+                    <td>Dashboard + DHCP 監控</td>
+                </tr>
+                <tr>
+                    <td>MAC Manager</td>
+                    <td><a href="https://github.com/nox913106/DEV-phpipam-mac-manager"
+                            target="_blank">DEV-phpipam-mac-manager</a></td>
+                    <td>MAC 地址管理工具</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <footer>
+        <p>© 2024 MG Feng. All rights reserved.</p>
+        <p>Document: phpIPAM 專案規範 | Last Updated: 2024-12-24</p>
+    </footer>
+
+    <script>
+        const translations = {
+            'zh-TW': {
+                title: '📋 phpIPAM 專案規範', subtitle: '生產環境系統架構文件',
+                serverInfo: '🖥️ 伺服器資訊', dirStructure: '📁 目錄結構',
+                containers: '🐳 Docker 容器', desc: '說明', webUI: 'Web 介面',
+                cronDHCP: '排程任務 + DHCP 監控', database: '資料庫', reverseProxy: '反向代理',
+                networkArch: '🌐 網路架構', volumes: '💾 Volume Mounts',
+                dbData: '資料庫資料', logoFiles: 'Logo 檔案', caCert: 'CA 憑證',
+                healthModule: 'Health Check 模組', deploySpec: '🔧 開發部署規範',
+                healthCheck: 'Health Check 模組', deploy1: '檔案放置於 /opt/health_check/',
+                deploy2: '由 phpipam-cron 容器執行', deploy3: 'Volume mount：/opt/health_check:/health_check',
+                dhcpDaemon: 'DHCP Monitor Daemon', daemon1: 'Log 路徑：/var/log/dhcp_monitor.log',
+                daemon2: '設定檔：/health_check/config/dhcp_servers.json', dbConn: '資料庫連線',
+                repos: '📁 相關 GitHub 專案', project: '專案'
+            },
+            'zh-CN': {
+                title: '📋 phpIPAM 项目规范', subtitle: '生产环境系统架构文件',
+                serverInfo: '🖥️ 服务器信息', dirStructure: '📁 目录结构',
+                containers: '🐳 Docker 容器', desc: '说明', webUI: 'Web 界面',
+                cronDHCP: '排程任务 + DHCP 监控', database: '数据库', reverseProxy: '反向代理',
+                networkArch: '🌐 网络架构', volumes: '💾 Volume Mounts',
+                dbData: '数据库数据', logoFiles: 'Logo 文件', caCert: 'CA 证书',
+                healthModule: 'Health Check 模块', deploySpec: '🔧 开发部署规范',
+                healthCheck: 'Health Check 模块', deploy1: '文件放置于 /opt/health_check/',
+                deploy2: '由 phpipam-cron 容器执行', deploy3: 'Volume mount：/opt/health_check:/health_check',
+                dhcpDaemon: 'DHCP Monitor Daemon', daemon1: 'Log 路径：/var/log/dhcp_monitor.log',
+                daemon2: '设置档：/health_check/config/dhcp_servers.json', dbConn: '数据库连接',
+                repos: '📁 相关 GitHub 项目', project: '项目'
+            },
+            'en': {
+                title: '📋 phpIPAM Project Specification', subtitle: 'Production System Architecture',
+                serverInfo: '🖥️ Server Info', dirStructure: '📁 Directory Structure',
+                containers: '🐳 Docker Containers', desc: 'Description', webUI: 'Web Interface',
+                cronDHCP: 'Cron Tasks + DHCP Monitor', database: 'Database', reverseProxy: 'Reverse Proxy',
+                networkArch: '🌐 Network Architecture', volumes: '💾 Volume Mounts',
+                dbData: 'Database Data', logoFiles: 'Logo Files', caCert: 'CA Certificate',
+                healthModule: 'Health Check Module', deploySpec: '🔧 Deployment Specification',
+                healthCheck: 'Health Check Module', deploy1: 'Files placed at /opt/health_check/',
+                deploy2: 'Executed by phpipam-cron container', deploy3: 'Volume mount: /opt/health_check:/health_check',
+                dhcpDaemon: 'DHCP Monitor Daemon', daemon1: 'Log path: /var/log/dhcp_monitor.log',
+                daemon2: 'Config: /health_check/config/dhcp_servers.json', dbConn: 'Database Connection',
+                repos: '📁 Related GitHub Repos', project: 'Project'
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'zh-TW';
+
+        function setLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            document.querySelectorAll('[data-lang]').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (translations[lang] && translations[lang][key]) el.textContent = translations[lang][key];
+            });
+        }
+
+        function toggleTheme() {
+            const root = document.documentElement;
+            const isDark = root.classList.toggle('light');
+            document.getElementById('themeBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        function copyCode(btn) {
+            const code = btn.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy', 2000);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.classList.add('light');
+                document.getElementById('themeBtn').textContent = '☀️ Light';
+            }
+            setLang(currentLang);
+
+            // Add copy buttons to pre elements
+            document.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.className = 'copy-btn';
+                btn.textContent = '📋 Copy';
+                btn.onclick = function () { copyCode(this); };
+                pre.insertBefore(btn, pre.firstChild);
+            });
+        });
+    </script>
+</body>
+
+</html>
