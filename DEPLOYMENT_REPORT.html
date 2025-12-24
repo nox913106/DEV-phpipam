@@ -4,17 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>phpIPAM ?•Â∫∑Ê™¢Êü•?üËÉΩ?®ÁΩ≤?±Â?</title>
+    <title>phpIPAM Health Check Deployment Report</title>
     <style>
         :root {
             --bg: #0f172a;
-            --bg2: #1e293b;
-            --card: #334155;
-            --text: #f1f5f9;
-            --text2: #94a3b8;
-            --green: #22c55e;
-            --blue: #3b82f6;
-            --orange: #f97316;
+            --card: #1e293b;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --border: #334155;
         }
 
         * {
@@ -24,436 +24,299 @@
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
-            padding: 40px 20px;
+            padding: 2rem;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
+        header {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1e40af, #7c3aed);
+            border-radius: 1rem;
+            margin-bottom: 2rem;
         }
 
-        h1 {
+        header h1 {
             font-size: 2rem;
-            text-align: center;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, var(--blue), #a855f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
         }
 
-        .subtitle {
-            text-align: center;
-            color: var(--text2);
-            margin-bottom: 40px;
+        header p {
+            opacity: 0.9;
         }
 
         .card {
-            background: var(--bg2);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            border: 1px solid var(--card);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        h2 {
+        .card h2 {
+            color: var(--accent);
             font-size: 1.25rem;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        h2::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: var(--blue);
-            border-radius: 2px;
-        }
-
-        h3 {
-            font-size: 1rem;
-            color: var(--blue);
-            margin: 16px 0 8px 0;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 16px 0;
+            margin: 1rem 0;
         }
 
         th,
         td {
-            padding: 12px;
+            padding: 0.75rem 1rem;
             text-align: left;
-            border-bottom: 1px solid var(--card);
+            border-bottom: 1px solid var(--border);
         }
 
         th {
-            color: var(--text2);
-            font-size: 0.75rem;
-            text-transform: uppercase;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            font-weight: 600;
         }
 
         .badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
             font-weight: 600;
         }
 
-        .badge.success {
-            background: rgba(34, 197, 94, 0.2);
-            color: var(--green);
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
         }
 
-        .step {
-            background: var(--card);
-            border-radius: 8px;
-            padding: 16px;
-            margin: 12px 0;
-        }
-
-        .step-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .step-title {
-            font-weight: 600;
-        }
-
-        .step-time {
-            color: var(--text2);
-            font-size: 0.875rem;
+        .badge-info {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent);
         }
 
         pre {
-            background: #0a0f1a;
-            padding: 16px;
-            border-radius: 8px;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
             overflow-x: auto;
-            font-size: 0.875rem;
-            margin: 8px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
         }
 
         code {
-            color: var(--green);
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
         }
 
-        .highlight {
-            color: var(--orange);
-        }
-
-        ul {
-            padding-left: 20px;
-            margin: 8px 0;
-        }
-
-        li {
-            margin: 4px 0;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin: 16px 0;
-        }
-
-        .summary-item {
-            background: var(--card);
-            padding: 16px;
-            border-radius: 8px;
+        footer {
             text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
         }
 
-        .summary-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--green);
-        }
-
-        .summary-label {
-            font-size: 0.75rem;
-            color: var(--text2);
-            margin-top: 4px;
-        }
-
-        .footer {
-            text-align: center;
-            color: var(--text2);
-            font-size: 0.875rem;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid var(--card);
-        }
-
-        img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin: 16px 0;
+        a {
+            color: var(--accent);
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>?? phpIPAM ?•Â∫∑Ê™¢Êü•?üËÉΩ?®ÁΩ≤?±Â?</h1>
-        <p class="subtitle">24 Â∞èÊ?Ê≠∑Âè≤Áµ±Ë? + ??éß Dashboard</p>
+    <header>
+        <h1>phpIPAM Health Check Deployment Report</h1>
+        <p>24h Historical Statistics + Real-time Dashboard</p>
+    </header>
 
-        <!-- ?®ÁΩ≤?òË? -->
-        <div class="card">
-            <h2>?®ÁΩ≤?òË?</h2>
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <div class="summary-value">??/div>
-                    <div class="summary-label">Ë≥áÊ?Ë°®Âª∫Á´?/div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">??/div>
-                    <div class="summary-label">Cron ?íÁ?</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">??/div>
-                    <div class="summary-label">API Á´ØÈ?</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">??/div>
-                    <div class="summary-label">Dashboard</div>
-                </div>
-            </div>
-            <table>
+    <div class="card">
+        <h2>Deployment Info</h2>
+        <table>
+            <tr>
+                <td>Deploy Date</td>
+                <td>2025-12-19</td>
+            </tr>
+            <tr>
+                <td>Cron Schedule</td>
+                <td>Every 5 minutes (system resources)</td>
+            </tr>
+            <tr>
+                <td>DHCP Monitor</td>
+                <td><span class="badge badge-success">Every 5 seconds</span></td>
+            </tr>
+            <tr>
+                <td>API Version</td>
+                <td><span class="badge badge-success">v2.2.1</span></td>
+            </tr>
+            <tr>
+                <td>Dashboard</td>
+                <td><span class="badge badge-info">Deployed</span></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Server Info</h2>
+        <table>
+            <thead>
                 <tr>
-                    <th>?ÖÁõÆ</th>
-                    <th>Ë©≥Ê?</th>
+                    <th>Item</th>
+                    <th>Details</th>
                 </tr>
+            </thead>
+            <tbody>
                 <tr>
-                    <td>?®ÁΩ≤?•Ê?</td>
-                    <td>2025-12-19</td>
-                </tr>
-                <tr>
-                    <td>?ÆÊ??∞Â?</td>
+                    <td>System Version</td>
                     <td>Docker phpIPAM v1.7.4</td>
                 </tr>
                 <tr>
-                    <td>‰º∫Ê???/td>
+                    <td>Server</td>
                     <td>stwphpipam-p (ipam-tw.pouchen.com)</td>
                 </tr>
                 <tr>
                     <td>Dashboard URL</td>
-                    <td><a href="https://ipam-tw.pouchen.com/health_dashboard/"
-                            style="color: var(--blue);">https://ipam-tw.pouchen.com/health_dashboard/</a></td>
+                    <td><a
+                            href="https://ipam-tw.pouchen.com/health_dashboard/">https://ipam-tw.pouchen.com/health_dashboard/</a>
+                    </td>
                 </tr>
-            </table>
-        </div>
+            </tbody>
+        </table>
+    </div>
 
-        <!-- ?∞Â?Ë≥áË? -->
-        <div class="card">
-            <h2>?∞Â?Ë≥áË?</h2>
-            <table>
+    <div class="card">
+        <h2>Container Info</h2>
+        <table>
+            <thead>
                 <tr>
-                    <th>ÂÆπÂô®</th>
-                    <th>?†Â?</th>
-                    <th>?®ÈÄ?/th>
+                    <th>Container</th>
+                    <th>Image</th>
+                    <th>Description</th>
                 </tr>
+            </thead>
+            <tbody>
                 <tr>
                     <td>phpipam_phpipam-web_1</td>
                     <td>phpipam/phpipam-www:v1.7.4</td>
-                    <td>Web ?çÂ? + Dashboard</td>
+                    <td>Web App + Dashboard</td>
                 </tr>
                 <tr>
                     <td>phpipam_phpipam-cron_1</td>
                     <td>phpipam/phpipam-cron:v1.7.4</td>
-                    <td>Cron ?íÁ? + Ë≥áÊ??∂È?</td>
+                    <td>Cron + DHCP Monitor Daemon</td>
                 </tr>
                 <tr>
                     <td>phpipam_phpipam-mariadb_1</td>
                     <td>mariadb:latest</td>
-                    <td>Ë≥áÊ?Â∫?/td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- ?®ÁΩ≤Ê≠•È? -->
-        <div class="card">
-            <h2>?®ÁΩ≤Ê≠•È?Á¥Ä??/h2>
-
-            <div class="step">
-                <div class="step-header">
-                    <span class="step-title">Step 1 - ?∞Â?Á¢∫Ë?</span>
-                    <span class="step-time">08:19</span>
-                </div>
-                <span class="badge success">??ÂÆåÊ?</span>
-                <ul>
-                    <li>Á¢∫Ë? Docker ÂÆπÂô®?Ä??/li>
-                    <li>?ñÂ? docker-compose.yml ?çÁΩÆ</li>
-                    <li>Á¢∫Ë?Ë≥áÊ?Â∫´ÈÄ??Ë≥áË?</li>
-                </ul>
-            </div>
-
-            <div class="step">
-                <div class="step-header">
-                    <span class="step-title">Step 2 - Âª∫Á?Ë≥áÊ?Ë°?/span>
-                    <span class="step-time">08:28</span>
-                </div>
-                <span class="badge success">??ÂÆåÊ?</span>
-                <pre><code>docker exec -i phpipam_phpipam-mariadb_1 mariadb -u phpipam -p*** phpipam &lt; health_check_tables.sql
-
-Tables: health_check_system_history, health_check_dhcp_history</code></pre>
-            </div>
-
-            <div class="step">
-                <div class="step-header">
-                    <span class="step-title">Step 3 - ‰∏äÂÇ≥Á®ãÂ?Ê™îÊ?</span>
-                    <span class="step-time">08:30</span>
-                </div>
-                <span class="badge success">??ÂÆåÊ?</span>
-                <ul>
-                    <li>StatsCalculator.php (5175 bytes)</li>
-                    <li>HistoryCollector.php (4667 bytes)</li>
-                    <li>collect_stats.php (1969 bytes)</li>
-                </ul>
-                <pre><code>docker cp /tmp/health_check phpipam_phpipam-cron_1:/
-Successfully copied 17.4kB</code></pre>
-            </div>
-
-            <div class="step">
-                <div class="step-header">
-                    <span class="step-title">Step 4 - Ê∏¨Ë©¶?≥Êú¨</span>
-                    <span class="step-time">08:34</span>
-                </div>
-                <span class="badge success">??ÂÆåÊ?</span>
-                <pre><code>=== Health Check Collector ===
-[OK] DB connected
-[OK] System: CPU=0.05%, Mem=16.5%, Disk=59.15%
-[OK] DHCP: 6 servers checked
-     - 172.16.5.196: Online (0.287ms)
-     - 172.23.13.10: Online (27.631ms)
-     - 172.23.174.5: Online (8.269ms)
-     - 172.23.199.150: Online (4.161ms)
-     - 172.23.110.1: Online (6.796ms)
-     - 172.23.94.254: Online (39.825ms)
-Done in 18176.25ms</code></pre>
-            </div>
-
-            <div class="step">
-                <div class="step-header">
-                    <span class="step-title">Step 5 - Ë®≠Â? Cron Job</span>
-                    <span class="step-time">08:37</span>
-                </div>
-                <span class="badge success">??ÂÆåÊ?</span>
-                <pre><code>*/5 * * * * php /health_check/scripts/collect_stats.php >> /var/log/health_check.log 2>&1</code></pre>
-            </div>
-
-            <div class="step">
-                <div class="step-header">
-                    <span class="step-title">Step 6 - ?®ÁΩ≤ Dashboard</span>
-                    <span class="step-time">11:08</span>
-                </div>
-                <span class="badge success">??ÂÆåÊ?</span>
-                <ul>
-                    <li>Âª∫Á? api_stats.php API Á´ØÈ?</li>
-                    <li>Âª∫Á? index.html Dashboard (?≤Á???</li>
-                    <li>Ë§áË£Ω??phpipam-web ÂÆπÂô® /phpipam/health_dashboard/</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- ?üËÉΩË™™Ê? -->
-        <div class="card">
-            <h2>?üËÉΩË™™Ê?</h2>
-
-            <h3>?? 24 Â∞èÊ?Áµ±Ë?</h3>
-            <table>
-                <tr>
-                    <th>?áÊ?</th>
-                    <th>Áµ±Ë??ÖÁõÆ</th>
+                    <td>Database</td>
                 </tr>
                 <tr>
-                    <td>Á≥ªÁµ±Ë≥áÊ?</td>
-                    <td>CPU / Ë®òÊÜ∂È´?/ Á£ÅÁ? ‰ΩøÁî®??(avg, min, max)</td>
+                    <td>nginx_nginx_1</td>
+                    <td>nginx:latest</td>
+                    <td>Reverse Proxy + SSL</td>
                 </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>DHCP Monitor (v2.2.1)</h2>
+        <table>
+            <tr>
+                <td>Interval</td>
+                <td><span class="badge badge-success">Every 5 seconds</span></td>
+            </tr>
+            <tr>
+                <td>Time Alignment</td>
+                <td>:00 / :05 / :10 / :15... pattern</td>
+            </tr>
+            <tr>
+                <td>DHCP Servers</td>
+                <td>7</td>
+            </tr>
+            <tr>
+                <td>Data Retention</td>
+                <td>7 days (auto cleanup)</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>DHCP Server List</h2>
+        <table>
+            <thead>
                 <tr>
-                    <td>DHCP ‰º∫Ê???/td>
-                    <td>Âª∂ÈÅ≤ (avg, min, max) / Â∞ÅÂ??∫Â§±??/ ?ØÁî®??/td>
+                    <th>IP</th>
+                    <th>Hostname</th>
+                    <th>Location</th>
                 </tr>
-            </table>
-
-            <h3>?ñ•Ô∏?Dashboard ?üËÉΩ</h3>
-            <ul>
-                <li>Á≥ªÁµ±Ë≥áÊ??≥Ê??∏ÂÄºË??≤Á???/li>
-                <li>DHCP ‰º∫Ê??®Á??ãË°®??/li>
-                <li>DHCP Âª∂ÈÅ≤Ë∂®Âã¢?≤Á???(6 ?∞‰º∫?çÂô®)</li>
-                <li>ÊØ?60 ÁßíËá™?ïÊõ¥??/li>
-            </ul>
-
-            <h3>?ôÔ? DHCP ?çÁΩÆ</h3>
-            <p>Â¶ÇÈ??∞Â??ñ‰øÆ??DHCP ‰º∫Ê??®Ô?Á∑®ËºØ‰ª•‰?Ê™îÊ?Ôº?/p>
-            <pre><code>/health_check/includes/HistoryCollector.php
-
-$hostnames = [
-    '172.16.5.196' => 'DHCP-CH-HQ2',
-    '172.23.13.10' => 'DHCP-CH-PGT',
-    // ?∞Â?‰º∫Ê???..
-];</code></pre>
-        </div>
-
-        <!-- DHCP ‰º∫Ê???-->
-        <div class="card">
-            <h2>??éß??DHCP ‰º∫Ê???/h2>
-            <table>
-                <tr>
-                    <th>IP ‰ΩçÂ?</th>
-                    <th>‰∏ªÊ??çÁ®±</th>
-                    <th>‰ΩçÁΩÆ</th>
-                </tr>
+            </thead>
+            <tbody>
                 <tr>
                     <td>172.16.5.196</td>
                     <td>DHCP-CH-HQ2</td>
-                    <td>ÂΩ∞Â?Á∏ΩÈÉ®2</td>
+                    <td>Changhua HQ2</td>
                 </tr>
                 <tr>
                     <td>172.23.13.10</td>
                     <td>DHCP-CH-PGT</td>
-                    <td>ÂΩ∞Â??îÈπΩ</td>
+                    <td>Changhua Puyan</td>
                 </tr>
                 <tr>
                     <td>172.23.174.5</td>
                     <td>DHCP-TC-HQ</td>
-                    <td>?∞‰∏≠Á∏ΩÈÉ®</td>
+                    <td>Taichung HQ</td>
                 </tr>
                 <tr>
                     <td>172.23.199.150</td>
                     <td>DHCP-TC-UAIC</td>
-                    <td>?∞‰∏≠</td>
+                    <td>Taichung</td>
                 </tr>
                 <tr>
                     <td>172.23.110.1</td>
                     <td>DHCP-TP-XY</td>
-                    <td>?∞Â?</td>
+                    <td>Taipei</td>
                 </tr>
                 <tr>
                     <td>172.23.94.254</td>
                     <td>DHCP-TP-BaoYu</td>
-                    <td>?∞Â?ÂØ∂Ë?</td>
+                    <td>Taipei Baoyu</td>
                 </tr>
-            </table>
-        </div>
-
-        <div class="footer">
-            <p>?±Â??üÊ??ÇÈ?Ôº?025-12-19 11:11</p>
-            <p>phpIPAM Health Check Deployment Report</p>
-        </div>
+                <tr>
+                    <td>172.23.127.169</td>
+                    <td>DHCP-TC-CBD</td>
+                    <td>Taichung CBD</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
+
+    <div class="card">
+        <h2>API Endpoints</h2>
+        <pre>
+# Get latest status
+GET /health_dashboard/api/api_stats.php?action=latest
+
+# Get system history (fixed period)
+GET /health_dashboard/api/api_stats.php?action=system_history&amp;hours=6
+
+# Get DHCP history
+GET /health_dashboard/api/api_stats.php?action=dhcp_history&amp;hours=3
+
+# Get DHCP config
+GET /health_dashboard/api/api_dhcp_config.php?action=list
+        </pre>
+    </div>
+
+    <footer>
+        <p>phpIPAM Health Check Deployment Report | Last Updated: 2025-12-24</p>
+    </footer>
 </body>
 
 </html>
