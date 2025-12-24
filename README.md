@@ -170,6 +170,10 @@ docker exec phpipam-mariadb mysql -u phpipam -p phpipam \
 
 ## 📝 版本
 
+- **v2.2.1** (2025-12-24)
+  - 🔧 修正延遲解析 bug（原本全部顯示 1.00ms）
+  - 簡化 daemon 架構，提高穩定性
+
 - **v2.2** (2025-12-24)
   - 🚀 DHCP 監控間隔從 5 分鐘優化為 **5 秒**
   - 新增 `dhcp_monitor_daemon.php` 獨立監控服務

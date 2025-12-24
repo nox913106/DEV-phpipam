@@ -2,12 +2,13 @@
 
 ## 功能說明
 
-`dhcp_monitor_daemon.php` 是一個持續運行的 PHP daemon，每 **5 秒** 執行一次 DHCP 伺服器 ping 測試。
+`dhcp_monitor_daemon.php` (v2.2.1) 是一個持續運行的 PHP daemon，每 **5 秒** 執行一次 DHCP 伺服器 ping 測試。
 
 ### 主要特點
 
-- ⏱️ 每 5 秒監控一次（可調整 `MONITOR_INTERVAL` 常數）
+- ⏱️ 每 5 秒監控一次
 - 🕐 記錄時間對齊到 :00/:05/:10... 模式
+- 📊 正確解析 ping 延遲（0.2ms - 15ms）
 - 🔄 自動重新載入 DHCP 伺服器設定檔
 - 🗑️ 自動清理 7 天以上的舊資料
 - 📊 與現有 Health Dashboard 完全相容
