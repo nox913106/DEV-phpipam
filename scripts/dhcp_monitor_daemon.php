@@ -64,6 +64,8 @@ function ping_server($ip, $timeout = PING_TIMEOUT) {
         $cmd = "ping -c 1 -W $timeout $ip 2>&1";
     }
     
+    // 確保 output 陣列是空的（重要！）
+    $output = [];
     exec($cmd, $output, $return_code);
     $elapsed = (microtime(true) - $start) * 1000;
     
